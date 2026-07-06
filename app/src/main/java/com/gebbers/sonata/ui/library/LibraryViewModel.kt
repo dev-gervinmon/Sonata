@@ -28,6 +28,11 @@ class LibraryViewModel @Inject constructor(
 
     val currentSong = musicController.currentSong
     val isPlaying = musicController.isPlaying
+    val currentPosition = musicController.currentPosition
+    val duration = musicController.duration
+
+    private val _isPlayerSheetVisible = MutableStateFlow(false)
+    val isPlayerSheetVisible = _isPlayerSheetVisible.asStateFlow()
 
     init {
         musicController.connect()
@@ -58,6 +63,26 @@ class LibraryViewModel @Inject constructor(
 
     fun togglePlayPause() {
         musicController.togglePlayPause()
+    }
+
+    fun skipToNext() {
+        musicController.skipToNext()
+    }
+
+    fun skipToPrevious() {
+        musicController.skipToPrevious()
+    }
+
+    fun seekTo(position: Long) {
+        musicController.seekTo(position)
+    }
+
+    fun showPlayer() {
+        _isPlayerSheetVisible.value = true
+    }
+
+    fun hidePlayer() {
+        _isPlayerSheetVisible.value = false
     }
 
     fun refreshLibrary() {
