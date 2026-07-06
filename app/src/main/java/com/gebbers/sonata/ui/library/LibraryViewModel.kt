@@ -6,14 +6,13 @@ import com.gebbers.sonata.domain.model.Song
 import com.gebbers.sonata.domain.repository.MusicRepository
 import com.gebbers.sonata.ui.playback.MusicController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val musicRepository: MusicRepository,
@@ -22,6 +21,9 @@ class LibraryViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<LibraryUiState>(LibraryUiState.Loading)
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
@@ -41,17 +43,31 @@ class LibraryViewModel @Inject constructor(
 
     private fun observeSongs() {
         viewModelScope.launch {
-            musicRepository.getAllSongs()
+            _searchQuery
+                .debounce(300L)
+                .flatMapLatest { query ->
+                    if (query.isBlank()) {
+                        musicRepository.getAllSongs()
+                    } else {
+                        musicRepository.searchSongs(query)
+                    }
+                }
                 .onStart { _uiState.value = LibraryUiState.Loading }
                 .catch { e -> _uiState.value = LibraryUiState.Error(e.message ?: "Unknown error") }
                 .collect { songs ->
-                    if (songs.isEmpty()) {
+                    if (songs.isEmpty() && _searchQuery.value.isEmpty()) {
                         _uiState.value = LibraryUiState.Empty
+                    } else if (songs.isEmpty()) {
+                        _uiState.value = LibraryUiState.NoResults
                     } else {
                         _uiState.value = LibraryUiState.Success(songs)
                     }
                 }
         }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
     }
 
     fun playSong(song: Song) {
@@ -116,6 +132,7 @@ sealed interface LibraryUiState {
     object Loading : LibraryUiState
     data class Success(val songs: List<Song>) : LibraryUiState
     object Empty : LibraryUiState
+    object NoResults : LibraryUiState
     object PermissionDenied : LibraryUiState
     data class Error(val message: String) : LibraryUiState
 }
