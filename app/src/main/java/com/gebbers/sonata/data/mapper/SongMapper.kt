@@ -1,5 +1,8 @@
 package com.gebbers.sonata.data.mapper
 
+import android.net.Uri
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import com.gebbers.sonata.data.local.SongEntity
 import com.gebbers.sonata.domain.model.Song
 
@@ -28,4 +31,18 @@ fun Song.toEntity(dateAdded: Long = System.currentTimeMillis()): SongEntity {
         albumId = albumId,
         dateAdded = dateAdded
     )
+}
+
+fun Song.toMediaItem(): MediaItem {
+    return MediaItem.Builder()
+        .setMediaId(mediaStoreId.toString())
+        .setUri(Uri.parse(uri))
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(title)
+                .setArtist(artist)
+                .setAlbumTitle(album)
+                .build()
+        )
+        .build()
 }
