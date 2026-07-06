@@ -38,10 +38,7 @@ class MainActivity : AppCompatActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     LibraryScreen(
-                        viewModel = viewModel,
-                        onSongClick = { song ->
-                            // Handle song click
-                        }
+                        viewModel = viewModel
                     )
                 }
             }
