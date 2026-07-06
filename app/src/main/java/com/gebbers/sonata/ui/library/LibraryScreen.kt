@@ -9,21 +9,29 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import com.gebbers.sonata.R
+import com.gebbers.sonata.ui.playback.MiniPlayer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
-    viewModel: LibraryViewModel,
-    onSongClick: (com.gebbers.sonata.domain.model.Song) -> Unit
+    viewModel: LibraryViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currentSong by viewModel.currentSong.collectAsState()
+    val isPlaying by viewModel.isPlaying.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Sonata Music") }
+            )
+        },
+        bottomBar = {
+            MiniPlayer(
+                song = currentSong,
+                isPlaying = isPlaying,
+                onTogglePlayPause = { viewModel.togglePlayPause() },
+                onClick = { /* Open full player */ }
             )
         }
     ) { paddingValues ->
@@ -39,7 +47,7 @@ fun LibraryScreen(
                 is LibraryUiState.Success -> {
                     SongList(
                         songs = state.songs,
-                        onSongClick = onSongClick
+                        onSongClick = { viewModel.playSong(it) }
                     )
                 }
                 is LibraryUiState.Empty -> {
