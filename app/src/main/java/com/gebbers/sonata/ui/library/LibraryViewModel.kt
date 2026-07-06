@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gebbers.sonata.domain.model.Song
 import com.gebbers.sonata.domain.repository.MusicRepository
+import com.gebbers.sonata.ui.playback.MusicController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val musicRepository: MusicRepository
+    private val musicRepository: MusicRepository,
+    private val musicController: MusicController
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LibraryUiState>(LibraryUiState.Loading)
@@ -24,7 +26,11 @@ class LibraryViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    val currentSong = musicController.currentSong
+    val isPlaying = musicController.isPlaying
+
     init {
+        musicController.connect()
         observeSongs()
     }
 
@@ -43,6 +49,17 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    fun playSong(song: Song) {
+        val currentState = uiState.value
+        if (currentState is LibraryUiState.Success) {
+            musicController.playSong(song, currentState.songs)
+        }
+    }
+
+    fun togglePlayPause() {
+        musicController.togglePlayPause()
+    }
+
     fun refreshLibrary() {
         viewModelScope.launch {
             _isRefreshing.value = true
@@ -55,12 +72,18 @@ class LibraryViewModel @Inject constructor(
             }
         }
     }
+
     fun onPermissionResult(isGranted: Boolean) {
         if (isGranted) {
             refreshLibrary()
         } else {
             _uiState.value = LibraryUiState.PermissionDenied
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        musicController.release()
     }
 }
 
