@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.gebbers.sonata.ui.playback.MiniPlayer
+import com.gebbers.sonata.ui.playback.PlayerScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,6 +20,11 @@ fun LibraryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val currentSong by viewModel.currentSong.collectAsState()
     val isPlaying by viewModel.isPlaying.collectAsState()
+    val currentPosition by viewModel.currentPosition.collectAsState()
+    val duration by viewModel.duration.collectAsState()
+    val isPlayerVisible by viewModel.isPlayerSheetVisible.collectAsState()
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Scaffold(
         topBar = {
@@ -31,7 +37,7 @@ fun LibraryScreen(
                 song = currentSong,
                 isPlaying = isPlaying,
                 onTogglePlayPause = { viewModel.togglePlayPause() },
-                onClick = { /* Open full player */ }
+                onClick = { viewModel.showPlayer() }
             )
         }
     ) { paddingValues ->
@@ -70,6 +76,27 @@ fun LibraryScreen(
                     )
                 }
             }
+        }
+    }
+
+    if (isPlayerVisible) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.hidePlayer() },
+            sheetState = sheetState,
+            dragHandle = null,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            PlayerScreen(
+                song = currentSong,
+                isPlaying = isPlaying,
+                currentPosition = currentPosition,
+                duration = duration,
+                onTogglePlayPause = { viewModel.togglePlayPause() },
+                onSkipNext = { viewModel.skipToNext() },
+                onSkipPrevious = { viewModel.skipToPrevious() },
+                onSeek = { viewModel.seekTo(it) },
+                onClose = { viewModel.hidePlayer() }
+            )
         }
     }
 }
