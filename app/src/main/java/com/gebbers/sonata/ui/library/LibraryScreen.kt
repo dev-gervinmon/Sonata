@@ -103,6 +103,7 @@ fun LibraryScreen(
                             is BrowsingMode.AllSongs -> 0
                             is BrowsingMode.Folders -> 1
                             is BrowsingMode.Playlists -> 2
+                            is BrowsingMode.Favorites -> 3
                             else -> 0
                         },
                         containerColor = MaterialTheme.colorScheme.background,
@@ -122,6 +123,11 @@ fun LibraryScreen(
                             selected = browsingMode is BrowsingMode.Playlists,
                             onClick = { viewModel.setBrowsingMode(BrowsingMode.Playlists) },
                             text = { Text("Playlists") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.Favorites,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.Favorites) },
+                            text = { Text("Favorites") }
                         )
                     }
                 }
@@ -218,6 +224,7 @@ fun LibraryScreen(
                 onCancelSleepTimer = { viewModel.cancelSleepTimer() },
                 onSetPlaybackSpeed = { viewModel.setPlaybackSpeed(it) },
                 onSetPlaybackPitch = { viewModel.setPlaybackPitch(it) },
+                onToggleFavorite = { viewModel.toggleFavorite(it) },
                 onOpenEqualizer = {
                     viewModel.hidePlayer()
                     viewModel.showEqualizer()
