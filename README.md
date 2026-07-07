@@ -26,6 +26,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 
 ### 🛠️ Advanced Tools
 - **Sleep Timer**: Customizable countdown to automatically stop playback.
+- **Playback Speed & Pitch**: Adjust playback speed (0.5x - 2.0x) and pitch independently for a customized listening experience.
 - **Mini Player**: Persistent control bar for quick access while browsing the library.
 - **Full Player Screen**: Immersive Material3 bottom sheet with rich controls.
 
@@ -45,8 +46,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [ ] Album Art extraction and caching.
 - [ ] Folder-based browsing.
 - [ ] Custom Playlist creation.
-- [ ] Playback speed and Pitch adjustment.
 - [ ] Homescreen Widgets.
+- [ ] Android Auto support.
 
 ---
 *Developed as a high-performance local music solution for Android.*
