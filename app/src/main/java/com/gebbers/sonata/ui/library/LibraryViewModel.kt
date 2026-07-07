@@ -35,6 +35,8 @@ class LibraryViewModel @Inject constructor(
     val currentPosition = musicController.currentPosition
     val duration = musicController.duration
     val sleepTimerMillisLeft = musicController.sleepTimerMillisLeft
+    val playbackSpeed = musicController.playbackSpeed
+    val playbackPitch = musicController.playbackPitch
 
     private val _isPlayerSheetVisible = MutableStateFlow(false)
     val isPlayerSheetVisible = _isPlayerSheetVisible.asStateFlow()
@@ -113,6 +115,14 @@ class LibraryViewModel @Inject constructor(
 
     fun cancelSleepTimer() {
         musicController.cancelSleepTimer()
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        musicController.setPlaybackSpeed(speed)
+    }
+
+    fun setPlaybackPitch(pitch: Float) {
+        musicController.setPlaybackPitch(pitch)
     }
 
     fun showPlayer() {
