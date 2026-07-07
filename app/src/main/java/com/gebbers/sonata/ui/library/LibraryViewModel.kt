@@ -19,6 +19,9 @@ sealed interface BrowsingMode {
     object Folders : BrowsingMode
     object Playlists : BrowsingMode
     object Favorites : BrowsingMode
+    object RecentlyAdded : BrowsingMode
+    object RecentlyPlayed : BrowsingMode
+    object MostPlayed : BrowsingMode
     data class ArtistDetail(val artist: com.gebbers.sonata.domain.model.Artist) : BrowsingMode
     data class AlbumDetail(val album: com.gebbers.sonata.domain.model.Album) : BrowsingMode
     data class FolderDetail(val folder: com.gebbers.sonata.domain.model.Folder) : BrowsingMode
@@ -128,6 +131,9 @@ class LibraryViewModel @Inject constructor(
                         is BrowsingMode.Folders -> musicRepository.getAllSongs()
                         is BrowsingMode.Playlists -> musicRepository.getAllSongs()
                         is BrowsingMode.Favorites -> musicRepository.getFavoriteSongs()
+                        is BrowsingMode.RecentlyAdded -> musicRepository.getRecentlyAdded()
+                        is BrowsingMode.RecentlyPlayed -> musicRepository.getRecentlyPlayed()
+                        is BrowsingMode.MostPlayed -> musicRepository.getMostPlayed()
                         is BrowsingMode.ArtistDetail -> musicRepository.getSongsByArtist(mode.artist.name)
                         is BrowsingMode.AlbumDetail -> musicRepository.getSongsByAlbum(mode.album.id)
                         is BrowsingMode.FolderDetail -> musicRepository.getSongsByFolder(mode.folder.path)
@@ -195,7 +201,9 @@ class LibraryViewModel @Inject constructor(
                 _browsingMode.value = BrowsingMode.Playlists
                 true
             }
-            is BrowsingMode.Artists, is BrowsingMode.Albums, is BrowsingMode.Folders, is BrowsingMode.Playlists, is BrowsingMode.Favorites -> {
+            is BrowsingMode.Artists, is BrowsingMode.Albums, is BrowsingMode.Folders, 
+            is BrowsingMode.Playlists, is BrowsingMode.Favorites, 
+            is BrowsingMode.RecentlyAdded, is BrowsingMode.RecentlyPlayed, is BrowsingMode.MostPlayed -> {
                 _browsingMode.value = BrowsingMode.AllSongs
                 true
             }
