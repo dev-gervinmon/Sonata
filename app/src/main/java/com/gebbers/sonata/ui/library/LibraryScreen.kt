@@ -143,6 +143,8 @@ fun LibraryScreen(
                 onToggleRepeatMode = { viewModel.toggleRepeatMode() },
                 onSkipNext = { viewModel.skipToNext() },
                 onSkipPrevious = { viewModel.skipToPrevious() },
+                onSeekForward = { viewModel.seekForward() },
+                onSeekBack = { viewModel.seekBack() },
                 onSeek = { viewModel.seekTo(it) },
                 onSetSleepTimer = { viewModel.setSleepTimer(it) },
                 onCancelSleepTimer = { viewModel.cancelSleepTimer() },
