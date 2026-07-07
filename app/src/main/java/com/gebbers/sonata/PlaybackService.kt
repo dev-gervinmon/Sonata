@@ -4,30 +4,46 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import androidx.annotation.OptIn
-import androidx.media3.common.util.UnstableApi
+import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.core.content.ContextCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
+import androidx.media3.session.MediaSession
+import com.gebbers.sonata.data.mapper.toMediaItem
+import com.gebbers.sonata.domain.repository.MusicRepository
 import com.gebbers.sonata.ui.equalizer.EqualizerManager
 import com.gebbers.sonata.ui.widget.MusicWidget
+import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlaybackService : MediaSessionService() {
-    private var mediaSession: MediaSession? = null
+class PlaybackService : MediaLibraryService() {
+    private var mediaSession: MediaLibrarySession? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    @Inject
+    lateinit var musicRepository: MusicRepository
+
+    @Inject
+    lateinit var equalizerManager: EqualizerManager
 
     private val widgetReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -42,8 +58,40 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
-    @Inject
-    lateinit var equalizerManager: EqualizerManager
+    private val librarySessionCallback = object : MediaLibrarySession.Callback {
+        override fun onGetLibraryRoot(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<MediaItem>> {
+            val rootItem = MediaItem.Builder()
+                .setMediaId("sonata_root")
+                .setMediaMetadata(
+                    androidx.media3.common.MediaMetadata.Builder()
+                        .setIsBrowsable(true)
+                        .setIsPlayable(false)
+                        .setTitle("Sonata Library")
+                        .build()
+                )
+                .build()
+            return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params))
+        }
+
+        override fun onGetChildren(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            parentId: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+            return serviceScope.future {
+                val songs = musicRepository.getAllSongs().first()
+                val mediaItems = songs.map { it.toMediaItem() }
+                LibraryResult.ofItemList(mediaItems, params)
+            }
+        }
+    }
 
     @OptIn(UnstableApi::class)
     override fun onCreate() {
@@ -67,8 +115,12 @@ class PlaybackService : MediaSessionService() {
                 updateWidget()
             }
 
-            override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updateWidget()
+                // Record playback for smart playlists
+                mediaItem?.mediaId?.toLongOrNull()?.let { id ->
+                    serviceScope.launch { musicRepository.recordSongPlayback(id) }
+                }
             }
 
             override fun onPositionDiscontinuity(
@@ -82,7 +134,7 @@ class PlaybackService : MediaSessionService() {
             }
         })
 
-        mediaSession = MediaSession.Builder(this, player).build()
+        mediaSession = MediaLibrarySession.Builder(this, player, librarySessionCallback).build()
 
         val filter = IntentFilter().apply {
             addAction("com.gebbers.sonata.ACTION_TOGGLE_PLAY_PAUSE")
@@ -167,7 +219,7 @@ class PlaybackService : MediaSessionService() {
         handler.post(runnable)
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
         return mediaSession
     }
 
