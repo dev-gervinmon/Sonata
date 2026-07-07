@@ -14,7 +14,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Queue Management**: Dynamic playlist handling with Gapless playback.
 - **Seek & Progress**: Real-time seek bar with millisecond-perfect timestamps.
 - **Shuffle & Repeat**: Full support for Shuffle mode and Repeat (Off, One, All).
-- **Smooth Transitions**: Automated fade-in/fade-out between tracks.
+- **Gapless Playback**: Professional, configurable crossfade transitions for an uninterrupted listening experience.
+- **Smooth Transitions**: Automated, user-definable fade-in/fade-out between tracks.
 
 ### 📂 Library Management
 - **MediaStore Scanner**: Automatically indexes all local music files.
@@ -66,8 +67,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Tag Editor.
 - [x] Dynamic UI Polish.
 - [x] Android Auto support.
+- [x] Gapless Playback fine-tuning.
 - [ ] Lyrics extraction and display.
-- [ ] Gapless Playback fine-tuning.
 
 ---
 *Developed as a high-performance local music solution for Android.*
