@@ -26,6 +26,7 @@ fun PlayerScreen(
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     onSeek: (Long) -> Unit,
+    onOpenEqualizer: () -> Unit,
     onClose: () -> Unit
 ) {
     if (song == null) return
@@ -37,11 +38,17 @@ fun PlayerScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        IconButton(
-            onClick = onClose,
-            modifier = Modifier.align(Alignment.Start)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Close")
+            IconButton(onClick = onClose) {
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Close")
+            }
+            IconButton(onClick = onOpenEqualizer) {
+                Icon(Icons.Default.Equalizer, contentDescription = "Equalizer")
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
