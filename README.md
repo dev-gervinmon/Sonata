@@ -23,6 +23,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Folder-based Browsing**: Navigate your music by its actual directory structure.
 - **Custom Playlists**: Create and manage your own song collections.
 - **Favorites System**: Quick "Heart" toggle to save and access your top tracks instantly.
+- **Tag Editor**: Edit song metadata (Title, Artist, Album) directly within the app.
 
 ### 🎛️ Audio Effects
 - **5-Band Equalizer**: Direct hardware-level integration with band sliders.
@@ -55,6 +56,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Favorites System.
 - [x] Artist & Album Views.
 - [x] Homescreen Widgets.
+- [x] Tag Editor.
 - [ ] Android Auto support.
 
 ---
