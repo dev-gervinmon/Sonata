@@ -30,6 +30,8 @@ fun LibraryScreen(
     val currentPosition by viewModel.currentPosition.collectAsState()
     val duration by viewModel.duration.collectAsState()
     val sleepTimerMillisLeft by viewModel.sleepTimerMillisLeft.collectAsState()
+    val playbackSpeed by viewModel.playbackSpeed.collectAsState()
+    val playbackPitch by viewModel.playbackPitch.collectAsState()
     val isPlayerVisible by viewModel.isPlayerSheetVisible.collectAsState()
     val isEqualizerVisible by viewModel.isEqualizerVisible.collectAsState()
 
@@ -134,6 +136,8 @@ fun LibraryScreen(
                 currentPosition = currentPosition,
                 duration = duration,
                 sleepTimerMillisLeft = sleepTimerMillisLeft,
+                playbackSpeed = playbackSpeed,
+                playbackPitch = playbackPitch,
                 onTogglePlayPause = { viewModel.togglePlayPause() },
                 onToggleShuffle = { viewModel.toggleShuffle() },
                 onToggleRepeatMode = { viewModel.toggleRepeatMode() },
@@ -142,6 +146,8 @@ fun LibraryScreen(
                 onSeek = { viewModel.seekTo(it) },
                 onSetSleepTimer = { viewModel.setSleepTimer(it) },
                 onCancelSleepTimer = { viewModel.cancelSleepTimer() },
+                onSetPlaybackSpeed = { viewModel.setPlaybackSpeed(it) },
+                onSetPlaybackPitch = { viewModel.setPlaybackPitch(it) },
                 onOpenEqualizer = {
                     viewModel.hidePlayer()
                     viewModel.showEqualizer()
