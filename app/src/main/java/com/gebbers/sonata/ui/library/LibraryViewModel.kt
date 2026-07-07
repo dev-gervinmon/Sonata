@@ -12,6 +12,12 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+sealed interface BrowsingMode {
+    object AllSongs : BrowsingMode
+    object Folders : BrowsingMode
+    data class FolderDetail(val folder: com.gebbers.sonata.domain.model.Folder) : BrowsingMode
+}
+
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
@@ -21,6 +27,9 @@ class LibraryViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<LibraryUiState>(LibraryUiState.Loading)
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
+
+    private val _browsingMode = MutableStateFlow<BrowsingMode>(BrowsingMode.AllSongs)
+    val browsingMode: StateFlow<BrowsingMode> = _browsingMode.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -44,33 +53,67 @@ class LibraryViewModel @Inject constructor(
     private val _isEqualizerVisible = MutableStateFlow(false)
     val isEqualizerVisible = _isEqualizerVisible.asStateFlow()
 
+    private val _folders = MutableStateFlow<List<com.gebbers.sonata.domain.model.Folder>>(emptyList())
+    val folders = _folders.asStateFlow()
+
     init {
         musicController.connect()
         observeSongs()
+        observeFolders()
+    }
+
+    private fun observeFolders() {
+        viewModelScope.launch {
+            musicRepository.getAllFolders().collect {
+                _folders.value = it
+            }
+        }
     }
 
     private fun observeSongs() {
         viewModelScope.launch {
-            _searchQuery
-                .debounce(300L)
-                .flatMapLatest { query ->
-                    if (query.isBlank()) {
-                        musicRepository.getAllSongs()
-                    } else {
-                        musicRepository.searchSongs(query)
+            combine(_searchQuery.debounce(300L), _browsingMode) { query, mode ->
+                query to mode
+            }.flatMapLatest { (query, mode) ->
+                if (query.isNotBlank()) {
+                    musicRepository.searchSongs(query)
+                } else {
+                    when (mode) {
+                        is BrowsingMode.AllSongs -> musicRepository.getAllSongs()
+                        is BrowsingMode.Folders -> musicRepository.getAllSongs() // Not really used for list
+                        is BrowsingMode.FolderDetail -> musicRepository.getSongsByFolder(mode.folder.path)
                     }
                 }
-                .onStart { _uiState.value = LibraryUiState.Loading }
-                .catch { e -> _uiState.value = LibraryUiState.Error(e.message ?: "Unknown error") }
-                .collect { songs ->
-                    if (songs.isEmpty() && _searchQuery.value.isEmpty()) {
-                        _uiState.value = LibraryUiState.Empty
-                    } else if (songs.isEmpty()) {
-                        _uiState.value = LibraryUiState.NoResults
-                    } else {
-                        _uiState.value = LibraryUiState.Success(songs)
-                    }
+            }
+            .onStart { _uiState.value = LibraryUiState.Loading }
+            .catch { e -> _uiState.value = LibraryUiState.Error(e.message ?: "Unknown error") }
+            .collect { songs ->
+                if (songs.isEmpty() && _searchQuery.value.isEmpty()) {
+                    _uiState.value = LibraryUiState.Empty
+                } else if (songs.isEmpty()) {
+                    _uiState.value = LibraryUiState.NoResults
+                } else {
+                    _uiState.value = LibraryUiState.Success(songs)
                 }
+            }
+        }
+    }
+
+    fun setBrowsingMode(mode: BrowsingMode) {
+        _browsingMode.value = mode
+    }
+
+    fun navigateBack(): Boolean {
+        return when (val current = _browsingMode.value) {
+            is BrowsingMode.FolderDetail -> {
+                _browsingMode.value = BrowsingMode.Folders
+                true
+            }
+            is BrowsingMode.Folders -> {
+                _browsingMode.value = BrowsingMode.AllSongs
+                true
+            }
+            else -> false
         }
     }
 
