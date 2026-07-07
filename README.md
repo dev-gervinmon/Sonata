@@ -22,6 +22,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Artists & Albums Views**: Dedicated groupings for better structured library browsing.
 - **Folder-based Browsing**: Navigate your music by its actual directory structure.
 - **Custom Playlists**: Create and manage your own song collections.
+- **Smart Playlists**: Automatically generated lists for "Recently Added," "Most Played," and "Recently Played."
 - **Favorites System**: Quick "Heart" toggle to save and access your top tracks instantly.
 - **Tag Editor**: Edit song metadata (Title, Artist, Album) directly within the app.
 
@@ -53,6 +54,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Album Art extraction and caching.
 - [x] Folder-based browsing.
 - [x] Custom Playlist creation.
+- [x] Smart Playlists.
 - [x] Favorites System.
 - [x] Artist & Album Views.
 - [x] Homescreen Widgets.
