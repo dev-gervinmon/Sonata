@@ -1,5 +1,6 @@
 package com.gebbers.sonata.ui.library
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -22,6 +23,8 @@ fun LibraryScreen(
     equalizerViewModel: EqualizerViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val browsingMode by viewModel.browsingMode.collectAsState()
+    val folders by viewModel.folders.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val currentSong by viewModel.currentSong.collectAsState()
     val isPlaying by viewModel.isPlaying.collectAsState()
@@ -37,6 +40,10 @@ fun LibraryScreen(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    BackHandler(enabled = browsingMode !is BrowsingMode.AllSongs) {
+        viewModel.navigateBack()
+    }
+
     if (isEqualizerVisible) {
         EqualizerScreen(
             viewModel = equalizerViewModel,
@@ -46,7 +53,14 @@ fun LibraryScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Sonata Music") }
+                    title = {
+                        Text(
+                            text = when (val mode = browsingMode) {
+                                is BrowsingMode.FolderDetail -> mode.folder.name
+                                else -> "Sonata Music"
+                            }
+                        )
+                    }
                 )
             },
             bottomBar = {
@@ -63,57 +77,86 @@ fun LibraryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                TextField(
-                    value = searchQuery,
-                    onValueChange = { viewModel.onSearchQueryChange(it) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    placeholder = { Text("Search songs, artists, albums...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    singleLine = true,
-                    shape = MaterialTheme.shapes.medium,
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent
+                if (browsingMode !is BrowsingMode.FolderDetail) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.onSearchQueryChange(it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        placeholder = { Text("Search library...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.medium,
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                            unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent
+                        )
                     )
-                )
+
+                    PrimaryTabRow(
+                        selectedTabIndex = if (browsingMode is BrowsingMode.AllSongs) 0 else 1,
+                        containerColor = MaterialTheme.colorScheme.background,
+                        divider = {}
+                    ) {
+                        Tab(
+                            selected = browsingMode is BrowsingMode.AllSongs,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.AllSongs) },
+                            text = { Text("Songs") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.Folders,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.Folders) },
+                            text = { Text("Folders") }
+                        )
+                    }
+                }
 
                 Box(modifier = Modifier.weight(1f)) {
-                    when (val state = uiState) {
-                        is LibraryUiState.Loading -> {
-                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                        }
-                        is LibraryUiState.Success -> {
-                            SongList(
-                                songs = state.songs,
-                                onSongClick = { viewModel.playSong(it) }
+                    when {
+                        browsingMode is BrowsingMode.Folders && searchQuery.isEmpty() -> {
+                            FolderList(
+                                folders = folders,
+                                onFolderClick = { viewModel.setBrowsingMode(BrowsingMode.FolderDetail(it)) }
                             )
                         }
-                        is LibraryUiState.Empty -> {
-                            Text(
-                                text = "No music found on device",
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                        is LibraryUiState.NoResults -> {
-                            Text(
-                                text = "No results found for \"$searchQuery\"",
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                        is LibraryUiState.PermissionDenied -> {
-                            Text(
-                                text = "Permission denied. Please grant storage access.",
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                        is LibraryUiState.Error -> {
-                            Text(
-                                text = "Error: ${state.message}",
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
+                        else -> {
+                            when (val state = uiState) {
+                                is LibraryUiState.Loading -> {
+                                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                                }
+                                is LibraryUiState.Success -> {
+                                    SongList(
+                                        songs = state.songs,
+                                        onSongClick = { viewModel.playSong(it) }
+                                    )
+                                }
+                                is LibraryUiState.Empty -> {
+                                    Text(
+                                        text = "No music found on device",
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                                is LibraryUiState.NoResults -> {
+                                    Text(
+                                        text = "No results found for \"$searchQuery\"",
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                                is LibraryUiState.PermissionDenied -> {
+                                    Text(
+                                        text = "Permission denied. Please grant storage access.",
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                                is LibraryUiState.Error -> {
+                                    Text(
+                                        text = "Error: ${state.message}",
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
