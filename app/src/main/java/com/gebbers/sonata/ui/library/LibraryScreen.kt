@@ -70,6 +70,9 @@ fun LibraryScreen(
                                 is BrowsingMode.ArtistDetail -> mode.artist.name
                                 is BrowsingMode.AlbumDetail -> mode.album.name
                                 is BrowsingMode.PlaylistDetail -> mode.playlist.name
+                                BrowsingMode.RecentlyAdded -> "Recently Added"
+                                BrowsingMode.RecentlyPlayed -> "Recently Played"
+                                BrowsingMode.MostPlayed -> "Most Played"
                                 else -> "Sonata Music"
                             }
                         )
@@ -118,6 +121,9 @@ fun LibraryScreen(
                             is BrowsingMode.Folders -> 3
                             is BrowsingMode.Playlists -> 4
                             is BrowsingMode.Favorites -> 5
+                            is BrowsingMode.RecentlyAdded -> 6
+                            is BrowsingMode.RecentlyPlayed -> 7
+                            is BrowsingMode.MostPlayed -> 8
                             else -> 0
                         },
                         containerColor = MaterialTheme.colorScheme.background,
@@ -153,6 +159,21 @@ fun LibraryScreen(
                             selected = browsingMode is BrowsingMode.Favorites,
                             onClick = { viewModel.setBrowsingMode(BrowsingMode.Favorites) },
                             text = { Text("Favorites") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.RecentlyAdded,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.RecentlyAdded) },
+                            text = { Text("Recent") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.RecentlyPlayed,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.RecentlyPlayed) },
+                            text = { Text("History") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.MostPlayed,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.MostPlayed) },
+                            text = { Text("Top") }
                         )
                     }
                 }
