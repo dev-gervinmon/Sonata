@@ -21,4 +21,12 @@ class EqualizerViewModel @Inject constructor(
     fun setPreset(presetIndex: Int) {
         equalizerManager.setPreset(presetIndex)
     }
+
+    fun setLoudnessEnabled(enabled: Boolean) {
+        equalizerManager.setLoudnessEnabled(enabled)
+    }
+
+    fun setLoudnessGain(gain: Int) {
+        equalizerManager.setLoudnessGain(gain)
+    }
 }
