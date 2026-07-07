@@ -1,5 +1,6 @@
 package com.gebbers.sonata.data.mapper
 
+import android.content.ContentUris
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -7,6 +8,11 @@ import com.gebbers.sonata.data.local.SongEntity
 import com.gebbers.sonata.domain.model.Song
 
 fun SongEntity.toSong(): Song {
+    val albumArtUri = ContentUris.withAppendedId(
+        Uri.parse("content://media/external/audio/albumart"),
+        albumId
+    ).toString()
+
     return Song(
         mediaStoreId = mediaStoreId,
         title = title,
@@ -15,7 +21,8 @@ fun SongEntity.toSong(): Song {
         duration = duration,
         dataPath = dataPath,
         uri = uri,
-        albumId = albumId
+        albumId = albumId,
+        albumArtUri = albumArtUri
     )
 }
 
@@ -42,6 +49,7 @@ fun Song.toMediaItem(): MediaItem {
                 .setTitle(title)
                 .setArtist(artist)
                 .setAlbumTitle(album)
+                .setArtworkUri(Uri.parse(albumArtUri))
                 .build()
         )
         .build()
