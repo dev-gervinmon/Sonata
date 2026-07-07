@@ -10,6 +10,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 ### 🎧 Core Playback
 - **Media3 ExoPlayer Integration**: High-performance audio engine.
 - **Background Playback**: Full support for background service with system notification controls.
+- **Fast Forward & Rewind**: Dedicated 10s skip buttons in the player.
 - **Queue Management**: Dynamic playlist handling with Gapless playback.
 - **Seek & Progress**: Real-time seek bar with millisecond-perfect timestamps.
 - **Shuffle & Repeat**: Full support for Shuffle mode and Repeat (Off, One, All).
