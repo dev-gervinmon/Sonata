@@ -15,7 +15,9 @@ import javax.inject.Inject
 sealed interface BrowsingMode {
     object AllSongs : BrowsingMode
     object Folders : BrowsingMode
+    object Playlists : BrowsingMode
     data class FolderDetail(val folder: com.gebbers.sonata.domain.model.Folder) : BrowsingMode
+    data class PlaylistDetail(val playlist: com.gebbers.sonata.domain.model.Playlist) : BrowsingMode
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -56,16 +58,28 @@ class LibraryViewModel @Inject constructor(
     private val _folders = MutableStateFlow<List<com.gebbers.sonata.domain.model.Folder>>(emptyList())
     val folders = _folders.asStateFlow()
 
+    private val _playlists = MutableStateFlow<List<com.gebbers.sonata.domain.model.Playlist>>(emptyList())
+    val playlists = _playlists.asStateFlow()
+
     init {
         musicController.connect()
         observeSongs()
         observeFolders()
+        observePlaylists()
     }
 
     private fun observeFolders() {
         viewModelScope.launch {
             musicRepository.getAllFolders().collect {
                 _folders.value = it
+            }
+        }
+    }
+
+    private fun observePlaylists() {
+        viewModelScope.launch {
+            musicRepository.getAllPlaylists().collect {
+                _playlists.value = it
             }
         }
     }
@@ -80,8 +94,10 @@ class LibraryViewModel @Inject constructor(
                 } else {
                     when (mode) {
                         is BrowsingMode.AllSongs -> musicRepository.getAllSongs()
-                        is BrowsingMode.Folders -> musicRepository.getAllSongs() // Not really used for list
+                        is BrowsingMode.Folders -> musicRepository.getAllSongs()
+                        is BrowsingMode.Playlists -> musicRepository.getAllSongs()
                         is BrowsingMode.FolderDetail -> musicRepository.getSongsByFolder(mode.folder.path)
+                        is BrowsingMode.PlaylistDetail -> musicRepository.getSongsInPlaylist(mode.playlist.id)
                     }
                 }
             }
@@ -99,6 +115,18 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    fun createPlaylist(name: String) {
+        viewModelScope.launch {
+            musicRepository.createPlaylist(name)
+        }
+    }
+
+    fun addSongToPlaylist(playlistId: Long, songId: Long) {
+        viewModelScope.launch {
+            musicRepository.addSongToPlaylist(playlistId, songId)
+        }
+    }
+
     fun setBrowsingMode(mode: BrowsingMode) {
         _browsingMode.value = mode
     }
@@ -109,7 +137,11 @@ class LibraryViewModel @Inject constructor(
                 _browsingMode.value = BrowsingMode.Folders
                 true
             }
-            is BrowsingMode.Folders -> {
+            is BrowsingMode.PlaylistDetail -> {
+                _browsingMode.value = BrowsingMode.Playlists
+                true
+            }
+            is BrowsingMode.Folders, is BrowsingMode.Playlists -> {
                 _browsingMode.value = BrowsingMode.AllSongs
                 true
             }
