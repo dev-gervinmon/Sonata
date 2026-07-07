@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,12 +18,15 @@ import com.gebbers.sonata.ui.playback.MiniPlayer
 import com.gebbers.sonata.ui.playback.PlayerScreen
 import com.gebbers.sonata.ui.equalizer.EqualizerScreen
 import com.gebbers.sonata.ui.equalizer.EqualizerViewModel
+import com.gebbers.sonata.ui.settings.SettingsScreen
+import com.gebbers.sonata.ui.settings.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel,
-    equalizerViewModel: EqualizerViewModel
+    equalizerViewModel: EqualizerViewModel,
+    settingsViewModel: SettingsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val browsingMode by viewModel.browsingMode.collectAsState()
@@ -42,6 +46,7 @@ fun LibraryScreen(
     val playbackPitch by viewModel.playbackPitch.collectAsState()
     val isPlayerVisible by viewModel.isPlayerSheetVisible.collectAsState()
     val isEqualizerVisible by viewModel.isEqualizerVisible.collectAsState()
+    val isSettingsVisible by viewModel.isSettingsVisible.collectAsState()
 
     var selectedSongForMenu by remember { mutableStateOf<com.gebbers.sonata.domain.model.Song?>(null) }
     var songForTagEditing by remember { mutableStateOf<com.gebbers.sonata.domain.model.Song?>(null) }
@@ -50,14 +55,23 @@ fun LibraryScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val playlistSheetState = rememberModalBottomSheetState()
 
-    BackHandler(enabled = browsingMode !is BrowsingMode.AllSongs) {
-        viewModel.navigateBack()
+    BackHandler(enabled = browsingMode !is BrowsingMode.AllSongs || isEqualizerVisible || isSettingsVisible) {
+        when {
+            isEqualizerVisible -> viewModel.hideEqualizer()
+            isSettingsVisible -> viewModel.hideSettings()
+            else -> viewModel.navigateBack()
+        }
     }
 
     if (isEqualizerVisible) {
         EqualizerScreen(
             viewModel = equalizerViewModel,
             onNavigateBack = { viewModel.hideEqualizer() }
+        )
+    } else if (isSettingsVisible) {
+        SettingsScreen(
+            viewModel = settingsViewModel,
+            onNavigateBack = { viewModel.hideSettings() }
         )
     } else {
         Scaffold(
@@ -76,6 +90,11 @@ fun LibraryScreen(
                                 else -> "Sonata Music"
                             }
                         )
+                    },
+                    actions = {
+                        IconButton(onClick = { viewModel.showSettings() }) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        }
                     }
                 )
             },
