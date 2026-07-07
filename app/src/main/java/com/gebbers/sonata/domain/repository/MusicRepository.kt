@@ -1,5 +1,7 @@
 package com.gebbers.sonata.domain.repository
 
+import com.gebbers.sonata.domain.model.Album
+import com.gebbers.sonata.domain.model.Artist
 import com.gebbers.sonata.domain.model.Folder
 import com.gebbers.sonata.domain.model.Playlist
 import com.gebbers.sonata.domain.model.Song
@@ -8,7 +10,12 @@ import kotlinx.coroutines.flow.Flow
 interface MusicRepository {
     fun getAllSongs(): Flow<List<Song>>
     fun getSongsByFolder(folderPath: String): Flow<List<Song>>
+    fun getSongsByArtist(artistName: String): Flow<List<Song>>
+    fun getSongsByAlbum(albumId: Long): Flow<List<Song>>
+    
     fun getAllFolders(): Flow<List<Folder>>
+    fun getAllArtists(): Flow<List<Artist>>
+    fun getAllAlbums(): Flow<List<Album>>
     
     fun getAllPlaylists(): Flow<List<Playlist>>
     fun getSongsInPlaylist(playlistId: Long): Flow<List<Song>>
