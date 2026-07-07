@@ -19,6 +19,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **MediaStore Scanner**: Automatically indexes all local music files.
 - **Room Database**: Persistent storage for fast library access.
 - **Instant Search**: Reactive search across titles, artists, and albums.
+- **Artists & Albums Views**: Dedicated groupings for better structured library browsing.
 - **Folder-based Browsing**: Navigate your music by its actual directory structure.
 - **Custom Playlists**: Create and manage your own song collections.
 - **Favorites System**: Quick "Heart" toggle to save and access your top tracks instantly.
@@ -51,7 +52,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Folder-based browsing.
 - [x] Custom Playlist creation.
 - [x] Favorites System.
-- [ ] Artist & Album Views.
+- [x] Artist & Album Views.
 - [ ] Homescreen Widgets.
 - [ ] Android Auto support.
 
