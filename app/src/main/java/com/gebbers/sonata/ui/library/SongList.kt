@@ -61,7 +61,7 @@ fun SongItem(
                     model = song.albumArtUri,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    contentScale = ContentScale.Crop
                 )
             }
             
