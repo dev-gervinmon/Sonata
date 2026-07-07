@@ -19,7 +19,8 @@ import javax.inject.Singleton
 
 @Singleton
 class MusicController @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val musicRepository: com.gebbers.sonata.domain.repository.MusicRepository
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -87,6 +88,11 @@ class MusicController @Inject constructor(
                     mediaItem?.let { item ->
                         _currentSong.value = currentPlaylist.find { it.mediaStoreId.toString() == item.mediaId }
                         _duration.value = controller.duration.coerceAtLeast(0L)
+                        
+                        // Record playback for smart playlists
+                        item.mediaId.toLongOrNull()?.let { id ->
+                            scope.launch { musicRepository.recordSongPlayback(id) }
+                        }
                     }
                 }
 
