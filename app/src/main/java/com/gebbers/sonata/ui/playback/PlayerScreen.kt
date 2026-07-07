@@ -22,6 +22,8 @@ fun PlayerScreen(
     currentPosition: Long,
     duration: Long,
     sleepTimerMillisLeft: Long?,
+    playbackSpeed: Float,
+    playbackPitch: Float,
     onTogglePlayPause: () -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleRepeatMode: () -> Unit,
@@ -30,12 +32,15 @@ fun PlayerScreen(
     onSeek: (Long) -> Unit,
     onSetSleepTimer: (Int) -> Unit,
     onCancelSleepTimer: () -> Unit,
+    onSetPlaybackSpeed: (Float) -> Unit,
+    onSetPlaybackPitch: (Float) -> Unit,
     onOpenEqualizer: () -> Unit,
     onClose: () -> Unit
 ) {
     if (song == null) return
 
     var showSleepTimerDialog by remember { mutableStateOf(false) }
+    var showPlaybackSettingsDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -55,10 +60,13 @@ fun PlayerScreen(
             Row {
                 IconButton(onClick = { showSleepTimerDialog = true }) {
                     Icon(
-                        imageVector = if (sleepTimerMillisLeft != null) Icons.Default.Timer else Icons.Default.Timer,
+                        imageVector = Icons.Default.Timer,
                         contentDescription = "Sleep Timer",
                         tint = if (sleepTimerMillisLeft != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
+                }
+                IconButton(onClick = { showPlaybackSettingsDialog = true }) {
+                    Icon(Icons.Default.Settings, contentDescription = "Playback Settings")
                 }
                 IconButton(onClick = onOpenEqualizer) {
                     Icon(Icons.Default.Equalizer, contentDescription = "Equalizer")
@@ -182,6 +190,66 @@ fun PlayerScreen(
             }
         )
     }
+
+    if (showPlaybackSettingsDialog) {
+        PlaybackSettingsDialog(
+            speed = playbackSpeed,
+            pitch = playbackPitch,
+            onDismiss = { showPlaybackSettingsDialog = false },
+            onSetSpeed = onSetPlaybackSpeed,
+            onSetPitch = onSetPlaybackPitch
+        )
+    }
+}
+
+@Composable
+fun PlaybackSettingsDialog(
+    speed: Float,
+    pitch: Float,
+    onDismiss: () -> Unit,
+    onSetSpeed: (Float) -> Unit,
+    onSetPitch: (Float) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Playback Settings") },
+        text = {
+            Column {
+                Text("Speed: ${"%.2f".format(speed)}x", style = MaterialTheme.typography.bodyMedium)
+                Slider(
+                    value = speed,
+                    onValueChange = onSetSpeed,
+                    valueRange = 0.5f..2.0f,
+                    steps = 15
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text("Pitch: ${"%.2f".format(pitch)}x", style = MaterialTheme.typography.bodyMedium)
+                Slider(
+                    value = pitch,
+                    onValueChange = onSetPitch,
+                    valueRange = 0.5f..2.0f,
+                    steps = 15
+                )
+                
+                TextButton(
+                    onClick = {
+                        onSetSpeed(1.0f)
+                        onSetPitch(1.0f)
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Reset")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Done")
+            }
+        }
+    )
 }
 
 @Composable
