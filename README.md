@@ -21,6 +21,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Instant Search**: Reactive search across titles, artists, and albums.
 - **Folder-based Browsing**: Navigate your music by its actual directory structure.
 - **Custom Playlists**: Create and manage your own song collections.
+- **Favorites System**: Quick "Heart" toggle to save and access your top tracks instantly.
 
 ### 🎛️ Audio Effects
 - **5-Band Equalizer**: Direct hardware-level integration with band sliders.
@@ -49,6 +50,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Album Art extraction and caching.
 - [x] Folder-based browsing.
 - [x] Custom Playlist creation.
+- [x] Favorites System.
+- [ ] Artist & Album Views.
 - [ ] Homescreen Widgets.
 - [ ] Android Auto support.
 
