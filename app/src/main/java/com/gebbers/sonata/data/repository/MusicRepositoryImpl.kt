@@ -1,13 +1,18 @@
 package com.gebbers.sonata.data.repository
 
+import com.gebbers.sonata.data.local.PlaylistDao
+import com.gebbers.sonata.data.local.PlaylistEntity
+import com.gebbers.sonata.data.local.PlaylistSongCrossRef
 import com.gebbers.sonata.data.local.SongDao
 import com.gebbers.sonata.data.mapper.toEntity
 import com.gebbers.sonata.data.mapper.toSong
 import com.gebbers.sonata.domain.model.Folder
+import com.gebbers.sonata.domain.model.Playlist
 import com.gebbers.sonata.domain.model.Song
 import com.gebbers.sonata.domain.repository.MusicRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -17,6 +22,7 @@ import javax.inject.Singleton
 @Singleton
 class MusicRepositoryImpl @Inject constructor(
     private val songDao: SongDao,
+    private val playlistDao: PlaylistDao,
     private val musicScanner: MusicScanner
 ) : MusicRepository {
 
@@ -48,6 +54,36 @@ class MusicRepositoryImpl @Inject constructor(
                 )
             }.sortedBy { it.name }
         }
+    }
+
+    override fun getAllPlaylists(): Flow<List<Playlist>> {
+        return playlistDao.getAllPlaylists().map { entities ->
+            entities.map { entity ->
+                Playlist(id = entity.id, name = entity.name)
+            }
+        }
+    }
+
+    override fun getSongsInPlaylist(playlistId: Long): Flow<List<Song>> {
+        return playlistDao.getSongsInPlaylist(playlistId).map { entities ->
+            entities.map { it.toSong() }
+        }
+    }
+
+    override suspend fun createPlaylist(name: String) {
+        playlistDao.insertPlaylist(PlaylistEntity(name = name))
+    }
+
+    override suspend fun deletePlaylist(playlist: Playlist) {
+        playlistDao.deletePlaylist(PlaylistEntity(id = playlist.id, name = playlist.name))
+    }
+
+    override suspend fun addSongToPlaylist(playlistId: Long, mediaStoreId: Long) {
+        playlistDao.addSongToPlaylist(PlaylistSongCrossRef(playlistId, mediaStoreId))
+    }
+
+    override suspend fun removeSongFromPlaylist(playlistId: Long, mediaStoreId: Long) {
+        playlistDao.removeSongFromPlaylist(PlaylistSongCrossRef(playlistId, mediaStoreId))
     }
 
     override fun searchSongs(query: String): Flow<List<Song>> {
