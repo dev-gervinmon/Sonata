@@ -5,11 +5,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gebbers.sonata.ui.playback.MiniPlayer
 import com.gebbers.sonata.ui.playback.PlayerScreen
@@ -42,6 +44,8 @@ fun LibraryScreen(
     val isEqualizerVisible by viewModel.isEqualizerVisible.collectAsState()
 
     var selectedSongForMenu by remember { mutableStateOf<com.gebbers.sonata.domain.model.Song?>(null) }
+    var songForTagEditing by remember { mutableStateOf<com.gebbers.sonata.domain.model.Song?>(null) }
+    var isAddingToPlaylist by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val playlistSheetState = rememberModalBottomSheetState()
@@ -155,18 +159,6 @@ fun LibraryScreen(
 
                 Box(modifier = Modifier.weight(1f)) {
                     when {
-                        browsingMode is BrowsingMode.Artists && searchQuery.isEmpty() -> {
-                            ArtistList(
-                                artists = artists,
-                                onArtistClick = { viewModel.setBrowsingMode(BrowsingMode.ArtistDetail(it)) }
-                            )
-                        }
-                        browsingMode is BrowsingMode.Albums && searchQuery.isEmpty() -> {
-                            AlbumGrid(
-                                albums = albums,
-                                onAlbumClick = { viewModel.setBrowsingMode(BrowsingMode.AlbumDetail(it)) }
-                            )
-                        }
                         browsingMode is BrowsingMode.Folders && searchQuery.isEmpty() -> {
                             FolderList(
                                 folders = folders,
@@ -269,7 +261,10 @@ fun LibraryScreen(
 
     if (selectedSongForMenu != null) {
         ModalBottomSheet(
-            onDismissRequest = { selectedSongForMenu = null },
+            onDismissRequest = { 
+                selectedSongForMenu = null
+                isAddingToPlaylist = false
+            },
             sheetState = playlistSheetState
         ) {
             Column(
@@ -277,17 +272,41 @@ fun LibraryScreen(
                     .fillMaxWidth()
                     .padding(bottom = 32.dp)
             ) {
-                Text(
-                    text = "Add to Playlist",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
-                playlists.forEach { playlist ->
+                if (isAddingToPlaylist) {
+                    Text(
+                        text = "Add to Playlist",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    playlists.forEach { playlist ->
+                        ListItem(
+                            headlineContent = { Text(playlist.name) },
+                            leadingContent = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null) },
+                            modifier = Modifier.clickable {
+                                viewModel.addSongToPlaylist(playlist.id, selectedSongForMenu!!.mediaStoreId)
+                                selectedSongForMenu = null
+                                isAddingToPlaylist = false
+                            }
+                        )
+                    }
+                } else {
+                    Text(
+                        text = selectedSongForMenu?.title ?: "Song Options",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     ListItem(
-                        headlineContent = { Text(playlist.name) },
+                        headlineContent = { Text("Add to playlist") },
                         leadingContent = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null) },
-                        modifier = Modifier.clickable {
-                            viewModel.addSongToPlaylist(playlist.id, selectedSongForMenu!!.mediaStoreId)
+                        modifier = Modifier.clickable { isAddingToPlaylist = true }
+                    )
+                    ListItem(
+                        headlineContent = { Text("Edit tags") },
+                        leadingContent = { Icon(Icons.Default.Edit, contentDescription = null) },
+                        modifier = Modifier.clickable { 
+                            songForTagEditing = selectedSongForMenu
                             selectedSongForMenu = null
                         }
                     )
@@ -295,4 +314,63 @@ fun LibraryScreen(
             }
         }
     }
+
+    if (songForTagEditing != null) {
+        TagEditorDialog(
+            song = songForTagEditing!!,
+            onDismiss = { songForTagEditing = null },
+            onSave = { title, artist, album ->
+                viewModel.updateSongTags(songForTagEditing!!.mediaStoreId, title, artist, album)
+                songForTagEditing = null
+            }
+        )
+    }
+}
+
+@Composable
+fun TagEditorDialog(
+    song: com.gebbers.sonata.domain.model.Song,
+    onDismiss: () -> Unit,
+    onSave: (String, String, String) -> Unit
+) {
+    var title by remember { mutableStateOf(song.title) }
+    var artist by remember { mutableStateOf(song.artist) }
+    var album by remember { mutableStateOf(song.album) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Tags") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = artist,
+                    onValueChange = { artist = it },
+                    label = { Text("Artist") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = album,
+                    onValueChange = { album = it },
+                    label = { Text("Album") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(title, artist, album) }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
