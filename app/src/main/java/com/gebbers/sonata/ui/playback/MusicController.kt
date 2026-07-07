@@ -44,8 +44,12 @@ class MusicController @Inject constructor(
     private val _duration = MutableStateFlow(0L)
     val duration = _duration.asStateFlow()
 
+    private val _sleepTimerMillisLeft = MutableStateFlow<Long?>(null)
+    val sleepTimerMillisLeft = _sleepTimerMillisLeft.asStateFlow()
+
     private var currentPlaylist: List<Song> = emptyList()
     private var progressJob: Job? = null
+    private var sleepTimerJob: Job? = null
 
     fun connect() {
         if (controllerFuture != null) return
@@ -138,6 +142,28 @@ class MusicController @Inject constructor(
 
     fun skipToPrevious() {
         controller?.seekToPrevious()
+    }
+
+    fun setSleepTimer(minutes: Int) {
+        sleepTimerJob?.cancel()
+        val totalMillis = minutes * 60 * 1000L
+        _sleepTimerMillisLeft.value = totalMillis
+        
+        sleepTimerJob = scope.launch {
+            var remaining = totalMillis
+            while (remaining > 0) {
+                delay(1000)
+                remaining -= 1000
+                _sleepTimerMillisLeft.value = remaining
+            }
+            controller?.pause()
+            _sleepTimerMillisLeft.value = null
+        }
+    }
+
+    fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        _sleepTimerMillisLeft.value = null
     }
 
     fun toggleShuffle() {
