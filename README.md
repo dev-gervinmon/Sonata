@@ -20,6 +20,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Room Database**: Persistent storage for fast library access.
 - **Instant Search**: Reactive search across titles, artists, and albums.
 - **Folder-based Browsing**: Navigate your music by its actual directory structure.
+- **Custom Playlists**: Create and manage your own song collections.
 
 ### 🎛️ Audio Effects
 - **5-Band Equalizer**: Direct hardware-level integration with band sliders.
@@ -47,7 +48,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 ## 🛣️ Roadmap
 - [x] Album Art extraction and caching.
 - [x] Folder-based browsing.
-- [ ] Custom Playlist creation.
+- [x] Custom Playlist creation.
 - [ ] Homescreen Widgets.
 - [ ] Android Auto support.
 
