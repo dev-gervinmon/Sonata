@@ -18,7 +18,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 ### 📂 Library Management
 - **MediaStore Scanner**: Automatically indexes all local music files.
 - **Room Database**: Persistent storage for fast library access.
-- **Instant Search**: Reactive search across titles, artists, and albums using Kotlin Flows.
+- **Instant Search**: Reactive search across titles, artists, and albums.
+- **Folder-based Browsing**: Navigate your music by its actual directory structure.
 
 ### 🎛️ Audio Effects
 - **5-Band Equalizer**: Direct hardware-level integration with band sliders.
@@ -45,7 +46,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 
 ## 🛣️ Roadmap
 - [x] Album Art extraction and caching.
-- [ ] Folder-based browsing.
+- [x] Folder-based browsing.
 - [ ] Custom Playlist creation.
 - [ ] Homescreen Widgets.
 - [ ] Android Auto support.
