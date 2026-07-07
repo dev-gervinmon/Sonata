@@ -92,7 +92,7 @@ fun PlayerScreen(
                 model = song.albumArtUri,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                contentScale = ContentScale.Crop,
                 error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.MusicNote)
             )
         }
