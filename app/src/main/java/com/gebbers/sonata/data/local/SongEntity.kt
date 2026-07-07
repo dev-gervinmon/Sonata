@@ -14,5 +14,7 @@ data class SongEntity(
     val uri: String,
     val albumId: Long,
     val dateAdded: Long,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val playCount: Int = 0,
+    val lastPlayedAt: Long = 0
 )
