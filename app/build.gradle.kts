@@ -68,6 +68,7 @@ dependencies {
     // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.glance.appwidget)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
