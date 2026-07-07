@@ -20,6 +20,18 @@ interface SongDao {
     @Query("UPDATE songs SET isFavorite = :isFavorite WHERE mediaStoreId = :id")
     suspend fun updateFavoriteStatus(id: Long, isFavorite: Boolean)
 
+    @Query("UPDATE songs SET playCount = playCount + 1, lastPlayedAt = :timestamp WHERE mediaStoreId = :id")
+    suspend fun incrementPlayCount(id: Long, timestamp: Long)
+
+    @Query("SELECT * FROM songs ORDER BY dateAdded DESC LIMIT 50")
+    fun getRecentlyAdded(): Flow<List<SongEntity>>
+
+    @Query("SELECT * FROM songs WHERE lastPlayedAt > 0 ORDER BY lastPlayedAt DESC LIMIT 50")
+    fun getRecentlyPlayed(): Flow<List<SongEntity>>
+
+    @Query("SELECT * FROM songs WHERE playCount > 0 ORDER BY playCount DESC LIMIT 50")
+    fun getMostPlayed(): Flow<List<SongEntity>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSongs(songs: List<SongEntity>)
 
