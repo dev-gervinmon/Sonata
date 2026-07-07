@@ -25,6 +25,7 @@ fun LibraryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val browsingMode by viewModel.browsingMode.collectAsState()
     val folders by viewModel.folders.collectAsState()
+    val playlists by viewModel.playlists.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val currentSong by viewModel.currentSong.collectAsState()
     val isPlaying by viewModel.isPlaying.collectAsState()
@@ -77,7 +78,7 @@ fun LibraryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                if (browsingMode !is BrowsingMode.FolderDetail) {
+                if (browsingMode !is BrowsingMode.FolderDetail && browsingMode !is BrowsingMode.PlaylistDetail) {
                     TextField(
                         value = searchQuery,
                         onValueChange = { viewModel.onSearchQueryChange(it) },
@@ -95,7 +96,12 @@ fun LibraryScreen(
                     )
 
                     PrimaryTabRow(
-                        selectedTabIndex = if (browsingMode is BrowsingMode.AllSongs) 0 else 1,
+                        selectedTabIndex = when (browsingMode) {
+                            is BrowsingMode.AllSongs -> 0
+                            is BrowsingMode.Folders -> 1
+                            is BrowsingMode.Playlists -> 2
+                            else -> 0
+                        },
                         containerColor = MaterialTheme.colorScheme.background,
                         divider = {}
                     ) {
@@ -109,6 +115,11 @@ fun LibraryScreen(
                             onClick = { viewModel.setBrowsingMode(BrowsingMode.Folders) },
                             text = { Text("Folders") }
                         )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.Playlists,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.Playlists) },
+                            text = { Text("Playlists") }
+                        )
                     }
                 }
 
@@ -118,6 +129,13 @@ fun LibraryScreen(
                             FolderList(
                                 folders = folders,
                                 onFolderClick = { viewModel.setBrowsingMode(BrowsingMode.FolderDetail(it)) }
+                            )
+                        }
+                        browsingMode is BrowsingMode.Playlists && searchQuery.isEmpty() -> {
+                            PlaylistList(
+                                playlists = playlists,
+                                onPlaylistClick = { viewModel.setBrowsingMode(BrowsingMode.PlaylistDetail(it)) },
+                                onCreatePlaylist = { viewModel.createPlaylist(it) }
                             )
                         }
                         else -> {
@@ -133,7 +151,10 @@ fun LibraryScreen(
                                 }
                                 is LibraryUiState.Empty -> {
                                     Text(
-                                        text = "No music found on device",
+                                        text = when (browsingMode) {
+                                            is BrowsingMode.PlaylistDetail -> "This playlist is empty"
+                                            else -> "No music found on device"
+                                        },
                                         modifier = Modifier.align(Alignment.Center)
                                     )
                                 }
