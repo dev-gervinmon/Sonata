@@ -11,8 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,6 +28,8 @@ fun MiniPlayer(
     song: Song?,
     isPlaying: Boolean,
     onTogglePlayPause: () -> Unit,
+    onNext: () -> Unit,
+    onPrevious: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -36,6 +41,13 @@ fun MiniPlayer(
             .height(72.dp)
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .shadow(elevation = 12.dp, shape = MaterialTheme.shapes.medium)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures { change, dragAmount ->
+                    change.consume()
+                    if (dragAmount > 50) onPrevious()
+                    else if (dragAmount < -50) onNext()
+                }
+            }
             .clickable(onClick = onClick),
         color = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
         shape = MaterialTheme.shapes.medium
