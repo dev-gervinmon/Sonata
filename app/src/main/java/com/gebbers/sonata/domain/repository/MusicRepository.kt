@@ -26,6 +26,8 @@ interface MusicRepository {
     suspend fun addSongToPlaylist(playlistId: Long, mediaStoreId: Long)
     suspend fun removeSongFromPlaylist(playlistId: Long, mediaStoreId: Long)
 
+    suspend fun updateSongTags(songId: Long, newTitle: String, newArtist: String, newAlbum: String): Boolean
+
     fun searchSongs(query: String): Flow<List<Song>>
     suspend fun refreshLibrary()
 }
