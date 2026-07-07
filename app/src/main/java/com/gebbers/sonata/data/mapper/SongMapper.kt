@@ -23,7 +23,9 @@ fun SongEntity.toSong(): Song {
         uri = uri,
         albumId = albumId,
         albumArtUri = albumArtUri,
-        isFavorite = isFavorite
+        isFavorite = isFavorite,
+        playCount = playCount,
+        lastPlayedAt = lastPlayedAt
     )
 }
 
@@ -38,7 +40,9 @@ fun Song.toEntity(dateAdded: Long = System.currentTimeMillis()): SongEntity {
         uri = uri,
         albumId = albumId,
         dateAdded = dateAdded,
-        isFavorite = isFavorite
+        isFavorite = isFavorite,
+        playCount = playCount,
+        lastPlayedAt = lastPlayedAt
     )
 }
 
