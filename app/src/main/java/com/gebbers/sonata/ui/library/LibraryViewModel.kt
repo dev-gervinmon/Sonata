@@ -14,9 +14,13 @@ import javax.inject.Inject
 
 sealed interface BrowsingMode {
     object AllSongs : BrowsingMode
+    object Artists : BrowsingMode
+    object Albums : BrowsingMode
     object Folders : BrowsingMode
     object Playlists : BrowsingMode
     object Favorites : BrowsingMode
+    data class ArtistDetail(val artist: com.gebbers.sonata.domain.model.Artist) : BrowsingMode
+    data class AlbumDetail(val album: com.gebbers.sonata.domain.model.Album) : BrowsingMode
     data class FolderDetail(val folder: com.gebbers.sonata.domain.model.Folder) : BrowsingMode
     data class PlaylistDetail(val playlist: com.gebbers.sonata.domain.model.Playlist) : BrowsingMode
 }
@@ -59,6 +63,12 @@ class LibraryViewModel @Inject constructor(
     private val _folders = MutableStateFlow<List<com.gebbers.sonata.domain.model.Folder>>(emptyList())
     val folders = _folders.asStateFlow()
 
+    private val _artists = MutableStateFlow<List<com.gebbers.sonata.domain.model.Artist>>(emptyList())
+    val artists = _artists.asStateFlow()
+
+    private val _albums = MutableStateFlow<List<com.gebbers.sonata.domain.model.Album>>(emptyList())
+    val albums = _albums.asStateFlow()
+
     private val _playlists = MutableStateFlow<List<com.gebbers.sonata.domain.model.Playlist>>(emptyList())
     val playlists = _playlists.asStateFlow()
 
@@ -66,6 +76,8 @@ class LibraryViewModel @Inject constructor(
         musicController.connect()
         observeSongs()
         observeFolders()
+        observeArtists()
+        observeAlbums()
         observePlaylists()
     }
 
@@ -73,6 +85,22 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch {
             musicRepository.getAllFolders().collect {
                 _folders.value = it
+            }
+        }
+    }
+
+    private fun observeArtists() {
+        viewModelScope.launch {
+            musicRepository.getAllArtists().collect {
+                _artists.value = it
+            }
+        }
+    }
+
+    private fun observeAlbums() {
+        viewModelScope.launch {
+            musicRepository.getAllAlbums().collect {
+                _albums.value = it
             }
         }
     }
@@ -95,9 +123,13 @@ class LibraryViewModel @Inject constructor(
                 } else {
                     when (mode) {
                         is BrowsingMode.AllSongs -> musicRepository.getAllSongs()
+                        is BrowsingMode.Artists -> musicRepository.getAllSongs()
+                        is BrowsingMode.Albums -> musicRepository.getAllSongs()
                         is BrowsingMode.Folders -> musicRepository.getAllSongs()
                         is BrowsingMode.Playlists -> musicRepository.getAllSongs()
                         is BrowsingMode.Favorites -> musicRepository.getFavoriteSongs()
+                        is BrowsingMode.ArtistDetail -> musicRepository.getSongsByArtist(mode.artist.name)
+                        is BrowsingMode.AlbumDetail -> musicRepository.getSongsByAlbum(mode.album.id)
                         is BrowsingMode.FolderDetail -> musicRepository.getSongsByFolder(mode.folder.path)
                         is BrowsingMode.PlaylistDetail -> musicRepository.getSongsInPlaylist(mode.playlist.id)
                     }
@@ -141,6 +173,14 @@ class LibraryViewModel @Inject constructor(
 
     fun navigateBack(): Boolean {
         return when (val current = _browsingMode.value) {
+            is BrowsingMode.ArtistDetail -> {
+                _browsingMode.value = BrowsingMode.Artists
+                true
+            }
+            is BrowsingMode.AlbumDetail -> {
+                _browsingMode.value = BrowsingMode.Albums
+                true
+            }
             is BrowsingMode.FolderDetail -> {
                 _browsingMode.value = BrowsingMode.Folders
                 true
@@ -149,7 +189,7 @@ class LibraryViewModel @Inject constructor(
                 _browsingMode.value = BrowsingMode.Playlists
                 true
             }
-            is BrowsingMode.Folders, is BrowsingMode.Playlists -> {
+            is BrowsingMode.Artists, is BrowsingMode.Albums, is BrowsingMode.Folders, is BrowsingMode.Playlists, is BrowsingMode.Favorites -> {
                 _browsingMode.value = BrowsingMode.AllSongs
                 true
             }
