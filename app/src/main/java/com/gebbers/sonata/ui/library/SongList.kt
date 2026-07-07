@@ -4,8 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -18,6 +21,7 @@ import com.gebbers.sonata.domain.model.Song
 fun SongList(
     songs: List<Song>,
     onSongClick: (Song) -> Unit,
+    onMoreClick: (Song) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -28,7 +32,8 @@ fun SongList(
         items(songs, key = { it.mediaStoreId }) { song ->
             SongItem(
                 song = song,
-                onClick = { onSongClick(song) }
+                onClick = { onSongClick(song) },
+                onMoreClick = { onMoreClick(song) }
             )
         }
     }
@@ -38,6 +43,7 @@ fun SongList(
 fun SongItem(
     song: Song,
     onClick: () -> Unit,
+    onMoreClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -81,9 +87,15 @@ fun SongItem(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            
+            IconButton(onClick = onMoreClick) {
+                Icon(Icons.Default.MoreVert, contentDescription = "More")
+            }
+
             Text(
                 text = formatDuration(song.duration),
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 8.dp)
             )
         }
     }
