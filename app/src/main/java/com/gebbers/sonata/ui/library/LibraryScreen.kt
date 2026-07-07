@@ -25,6 +25,8 @@ fun LibraryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val browsingMode by viewModel.browsingMode.collectAsState()
     val folders by viewModel.folders.collectAsState()
+    val artists by viewModel.artists.collectAsState()
+    val albums by viewModel.albums.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val currentSong by viewModel.currentSong.collectAsState()
@@ -61,6 +63,9 @@ fun LibraryScreen(
                         Text(
                             text = when (val mode = browsingMode) {
                                 is BrowsingMode.FolderDetail -> mode.folder.name
+                                is BrowsingMode.ArtistDetail -> mode.artist.name
+                                is BrowsingMode.AlbumDetail -> mode.album.name
+                                is BrowsingMode.PlaylistDetail -> mode.playlist.name
                                 else -> "Sonata Music"
                             }
                         )
@@ -81,7 +86,10 @@ fun LibraryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                if (browsingMode !is BrowsingMode.FolderDetail && browsingMode !is BrowsingMode.PlaylistDetail) {
+                if (browsingMode !is BrowsingMode.FolderDetail && 
+                    browsingMode !is BrowsingMode.ArtistDetail && 
+                    browsingMode !is BrowsingMode.AlbumDetail && 
+                    browsingMode !is BrowsingMode.PlaylistDetail) {
                     TextField(
                         value = searchQuery,
                         onValueChange = { viewModel.onSearchQueryChange(it) },
@@ -98,21 +106,34 @@ fun LibraryScreen(
                         )
                     )
 
-                    PrimaryTabRow(
+                    ScrollableTabRow(
                         selectedTabIndex = when (browsingMode) {
                             is BrowsingMode.AllSongs -> 0
-                            is BrowsingMode.Folders -> 1
-                            is BrowsingMode.Playlists -> 2
-                            is BrowsingMode.Favorites -> 3
+                            is BrowsingMode.Artists -> 1
+                            is BrowsingMode.Albums -> 2
+                            is BrowsingMode.Folders -> 3
+                            is BrowsingMode.Playlists -> 4
+                            is BrowsingMode.Favorites -> 5
                             else -> 0
                         },
                         containerColor = MaterialTheme.colorScheme.background,
-                        divider = {}
+                        divider = {},
+                        edgePadding = 16.dp
                     ) {
                         Tab(
                             selected = browsingMode is BrowsingMode.AllSongs,
                             onClick = { viewModel.setBrowsingMode(BrowsingMode.AllSongs) },
                             text = { Text("Songs") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.Artists,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.Artists) },
+                            text = { Text("Artists") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.Albums,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.Albums) },
+                            text = { Text("Albums") }
                         )
                         Tab(
                             selected = browsingMode is BrowsingMode.Folders,
@@ -134,6 +155,18 @@ fun LibraryScreen(
 
                 Box(modifier = Modifier.weight(1f)) {
                     when {
+                        browsingMode is BrowsingMode.Artists && searchQuery.isEmpty() -> {
+                            ArtistList(
+                                artists = artists,
+                                onArtistClick = { viewModel.setBrowsingMode(BrowsingMode.ArtistDetail(it)) }
+                            )
+                        }
+                        browsingMode is BrowsingMode.Albums && searchQuery.isEmpty() -> {
+                            AlbumGrid(
+                                albums = albums,
+                                onAlbumClick = { viewModel.setBrowsingMode(BrowsingMode.AlbumDetail(it)) }
+                            )
+                        }
                         browsingMode is BrowsingMode.Folders && searchQuery.isEmpty() -> {
                             FolderList(
                                 folders = folders,
