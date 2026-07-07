@@ -34,6 +34,7 @@ class LibraryViewModel @Inject constructor(
     val repeatMode = musicController.repeatMode
     val currentPosition = musicController.currentPosition
     val duration = musicController.duration
+    val sleepTimerMillisLeft = musicController.sleepTimerMillisLeft
 
     private val _isPlayerSheetVisible = MutableStateFlow(false)
     val isPlayerSheetVisible = _isPlayerSheetVisible.asStateFlow()
@@ -104,6 +105,14 @@ class LibraryViewModel @Inject constructor(
 
     fun seekTo(position: Long) {
         musicController.seekTo(position)
+    }
+
+    fun setSleepTimer(minutes: Int) {
+        musicController.setSleepTimer(minutes)
+    }
+
+    fun cancelSleepTimer() {
+        musicController.cancelSleepTimer()
     }
 
     fun showPlayer() {
