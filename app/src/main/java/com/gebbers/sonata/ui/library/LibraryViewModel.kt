@@ -16,6 +16,7 @@ sealed interface BrowsingMode {
     object AllSongs : BrowsingMode
     object Folders : BrowsingMode
     object Playlists : BrowsingMode
+    object Favorites : BrowsingMode
     data class FolderDetail(val folder: com.gebbers.sonata.domain.model.Folder) : BrowsingMode
     data class PlaylistDetail(val playlist: com.gebbers.sonata.domain.model.Playlist) : BrowsingMode
 }
@@ -96,6 +97,7 @@ class LibraryViewModel @Inject constructor(
                         is BrowsingMode.AllSongs -> musicRepository.getAllSongs()
                         is BrowsingMode.Folders -> musicRepository.getAllSongs()
                         is BrowsingMode.Playlists -> musicRepository.getAllSongs()
+                        is BrowsingMode.Favorites -> musicRepository.getFavoriteSongs()
                         is BrowsingMode.FolderDetail -> musicRepository.getSongsByFolder(mode.folder.path)
                         is BrowsingMode.PlaylistDetail -> musicRepository.getSongsInPlaylist(mode.playlist.id)
                     }
@@ -124,6 +126,12 @@ class LibraryViewModel @Inject constructor(
     fun addSongToPlaylist(playlistId: Long, songId: Long) {
         viewModelScope.launch {
             musicRepository.addSongToPlaylist(playlistId, songId)
+        }
+    }
+
+    fun toggleFavorite(song: Song) {
+        viewModelScope.launch {
+            musicRepository.toggleFavorite(song.mediaStoreId, !song.isFavorite)
         }
     }
 
