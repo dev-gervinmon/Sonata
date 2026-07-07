@@ -38,6 +38,9 @@ class LibraryViewModel @Inject constructor(
     private val _isPlayerSheetVisible = MutableStateFlow(false)
     val isPlayerSheetVisible = _isPlayerSheetVisible.asStateFlow()
 
+    private val _isEqualizerVisible = MutableStateFlow(false)
+    val isEqualizerVisible = _isEqualizerVisible.asStateFlow()
+
     init {
         musicController.connect()
         observeSongs()
@@ -109,6 +112,14 @@ class LibraryViewModel @Inject constructor(
 
     fun hidePlayer() {
         _isPlayerSheetVisible.value = false
+    }
+
+    fun showEqualizer() {
+        _isEqualizerVisible.value = true
+    }
+
+    fun hideEqualizer() {
+        _isEqualizerVisible.value = false
     }
 
     fun refreshLibrary() {
