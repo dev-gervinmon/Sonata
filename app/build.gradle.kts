@@ -74,6 +74,7 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.guava)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
