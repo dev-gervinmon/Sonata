@@ -2,6 +2,7 @@ package com.gebbers.sonata.di
 
 import android.content.Context
 import androidx.room.Room
+import com.gebbers.sonata.data.local.PlaylistDao
 import com.gebbers.sonata.data.local.SongDao
 import com.gebbers.sonata.data.local.SonataDatabase
 import dagger.Module
@@ -29,5 +30,11 @@ object DatabaseModule {
     @Singleton
     fun provideSongDao(database: SonataDatabase): SongDao {
         return database.songDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePlaylistDao(database: SonataDatabase): PlaylistDao {
+        return database.playlistDao()
     }
 }
