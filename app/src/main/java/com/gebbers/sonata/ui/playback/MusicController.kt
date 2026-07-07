@@ -47,6 +47,12 @@ class MusicController @Inject constructor(
     private val _sleepTimerMillisLeft = MutableStateFlow<Long?>(null)
     val sleepTimerMillisLeft = _sleepTimerMillisLeft.asStateFlow()
 
+    private val _playbackSpeed = MutableStateFlow(1.0f)
+    val playbackSpeed = _playbackSpeed.asStateFlow()
+
+    private val _playbackPitch = MutableStateFlow(1.0f)
+    val playbackPitch = _playbackPitch.asStateFlow()
+
     private var currentPlaylist: List<Song> = emptyList()
     private var progressJob: Job? = null
     private var sleepTimerJob: Job? = null
@@ -164,6 +170,19 @@ class MusicController @Inject constructor(
     fun cancelSleepTimer() {
         sleepTimerJob?.cancel()
         _sleepTimerMillisLeft.value = null
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        val controller = controller ?: return
+        _playbackSpeed.value = speed
+        controller.setPlaybackSpeed(speed)
+    }
+
+    fun setPlaybackPitch(pitch: Float) {
+        val controller = controller ?: return
+        _playbackPitch.value = pitch
+        val currentSpeed = _playbackSpeed.value
+        controller.playbackParameters = androidx.media3.common.PlaybackParameters(currentSpeed, pitch)
     }
 
     fun toggleShuffle() {
