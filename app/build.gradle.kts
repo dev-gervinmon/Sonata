@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.gebbers.sonata"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.gebbers.sonata"
