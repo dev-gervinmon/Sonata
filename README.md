@@ -37,7 +37,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Playback Speed & Pitch**: Adjust playback speed (0.5x - 2.0x) and pitch independently.
 - **Mini Player**: Persistent control bar for quick access while browsing the library.
 - **Full Player Screen**: Immersive Material3 bottom sheet with rich controls.
-- **Dynamic Theming**: Automatically updates the app's accent colors based on the currently playing album art for a truly modern feel.
+- **Dynamic Theming**: Automatically updates the app's accent colors based on the currently playing album art.
+- **Settings Page**: Customizable experience including theme toggles and library management.
 - **Homescreen Widget**: Control playback and see current song info directly from your homescreen.
 
 ## 🏗️ Tech Stack
@@ -63,6 +64,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Homescreen Widgets.
 - [x] Tag Editor.
 - [x] Dynamic UI Polish.
+- [x] Settings Page.
 - [ ] Android Auto support.
 - [ ] Lyrics extraction and display.
 
