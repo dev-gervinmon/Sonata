@@ -20,7 +20,12 @@ interface MusicRepository {
     fun getAllPlaylists(): Flow<List<Playlist>>
     fun getSongsInPlaylist(playlistId: Long): Flow<List<Song>>
     fun getFavoriteSongs(): Flow<List<Song>>
+    fun getRecentlyAdded(): Flow<List<Song>>
+    fun getRecentlyPlayed(): Flow<List<Song>>
+    fun getMostPlayed(): Flow<List<Song>>
+
     suspend fun toggleFavorite(songId: Long, isFavorite: Boolean)
+    suspend fun recordSongPlayback(songId: Long)
     suspend fun createPlaylist(name: String)
     suspend fun deletePlaylist(playlist: Playlist)
     suspend fun addSongToPlaylist(playlistId: Long, mediaStoreId: Long)
