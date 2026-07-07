@@ -29,6 +29,8 @@ fun PlayerScreen(
     onToggleRepeatMode: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBack: () -> Unit,
     onSeek: (Long) -> Unit,
     onSetSleepTimer: (Int) -> Unit,
     onCancelSleepTimer: () -> Unit,
@@ -149,6 +151,9 @@ fun PlayerScreen(
             IconButton(onClick = onSkipPrevious, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", modifier = Modifier.size(32.dp))
             }
+            IconButton(onClick = onSeekBack, modifier = Modifier.size(48.dp)) {
+                Icon(Icons.Default.Replay10, contentDescription = "Rewind 10s", modifier = Modifier.size(32.dp))
+            }
             FilledIconButton(
                 onClick = onTogglePlayPause,
                 modifier = Modifier.size(72.dp),
@@ -159,6 +164,9 @@ fun PlayerScreen(
                     contentDescription = if (isPlaying) "Pause" else "Play",
                     modifier = Modifier.size(40.dp)
                 )
+            }
+            IconButton(onClick = onSeekForward, modifier = Modifier.size(48.dp)) {
+                Icon(Icons.Default.Forward10, contentDescription = "Forward 10s", modifier = Modifier.size(32.dp))
             }
             IconButton(onClick = onSkipNext, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.Default.SkipNext, contentDescription = "Next", modifier = Modifier.size(32.dp))
