@@ -1,6 +1,7 @@
 package com.gebbers.sonata.ui.equalizer
 
 import android.media.audiofx.Equalizer
+import android.media.audiofx.LoudnessEnhancer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
@@ -9,6 +10,7 @@ import javax.inject.Singleton
 @Singleton
 class EqualizerManager @Inject constructor() {
     private var equalizer: Equalizer? = null
+    private var loudnessEnhancer: LoudnessEnhancer? = null
     
     private val _state = MutableStateFlow(EqualizerState())
     val state = _state.asStateFlow()
@@ -17,6 +19,10 @@ class EqualizerManager @Inject constructor() {
         try {
             equalizer = Equalizer(0, audioSessionId).apply {
                 enabled = _state.value.isEnabled
+            }
+            loudnessEnhancer = LoudnessEnhancer(audioSessionId).apply {
+                enabled = _state.value.isLoudnessEnabled
+                setTargetGain(_state.value.loudnessGain)
             }
             loadEqualizerSettings()
         } catch (e: Exception) {
@@ -58,6 +64,16 @@ class EqualizerManager @Inject constructor() {
         _state.value = _state.value.copy(isEnabled = enabled)
     }
 
+    fun setLoudnessEnabled(enabled: Boolean) {
+        loudnessEnhancer?.enabled = enabled
+        _state.value = _state.value.copy(isLoudnessEnabled = enabled)
+    }
+
+    fun setLoudnessGain(gain: Int) {
+        loudnessEnhancer?.setTargetGain(gain)
+        _state.value = _state.value.copy(loudnessGain = gain)
+    }
+
     fun setBandLevel(bandIndex: Int, level: Short) {
         equalizer?.setBandLevel(bandIndex.toShort(), level)
         val newBands = _state.value.bands.map {
@@ -69,12 +85,13 @@ class EqualizerManager @Inject constructor() {
     fun setPreset(presetIndex: Int) {
         equalizer?.usePreset(presetIndex.toShort())
         _state.value = _state.value.copy(currentPreset = presetIndex)
-        // Refresh band levels after applying preset
         loadEqualizerSettings()
     }
 
     fun release() {
         equalizer?.release()
+        loudnessEnhancer?.release()
         equalizer = null
+        loudnessEnhancer = null
     }
 }
