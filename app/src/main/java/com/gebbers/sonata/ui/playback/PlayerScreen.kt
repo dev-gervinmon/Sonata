@@ -38,6 +38,7 @@ fun PlayerScreen(
     onCancelSleepTimer: () -> Unit,
     onSetPlaybackSpeed: (Float) -> Unit,
     onSetPlaybackPitch: (Float) -> Unit,
+    onToggleFavorite: (Song) -> Unit,
     onOpenEqualizer: () -> Unit,
     onClose: () -> Unit
 ) {
@@ -106,14 +107,27 @@ fun PlayerScreen(
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center
         )
-        Text(
-            text = song.artist,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = song.artist,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            IconButton(onClick = { onToggleFavorite(song) }) {
+                Icon(
+                    imageVector = if (song.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (song.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
