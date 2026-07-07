@@ -44,7 +44,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 *(Coming soon as the UI evolves)*
 
 ## 🛣️ Roadmap
-- [ ] Album Art extraction and caching.
+- [x] Album Art extraction and caching.
 - [ ] Folder-based browsing.
 - [ ] Custom Playlist creation.
 - [ ] Homescreen Widgets.
