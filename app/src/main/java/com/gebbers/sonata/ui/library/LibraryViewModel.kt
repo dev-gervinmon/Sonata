@@ -109,6 +109,14 @@ class LibraryViewModel @Inject constructor(
         musicController.seekTo(position)
     }
 
+    fun seekForward() {
+        musicController.seekForward()
+    }
+
+    fun seekBack() {
+        musicController.seekBack()
+    }
+
     fun setSleepTimer(minutes: Int) {
         musicController.setSleepTimer(minutes)
     }
