@@ -122,8 +122,30 @@ class MusicRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getRecentlyAdded(): Flow<List<Song>> {
+        return songDao.getRecentlyAdded().map { entities ->
+            entities.map { it.toSong() }
+        }
+    }
+
+    override fun getRecentlyPlayed(): Flow<List<Song>> {
+        return songDao.getRecentlyPlayed().map { entities ->
+            entities.map { it.toSong() }
+        }
+    }
+
+    override fun getMostPlayed(): Flow<List<Song>> {
+        return songDao.getMostPlayed().map { entities ->
+            entities.map { it.toSong() }
+        }
+    }
+
     override suspend fun toggleFavorite(songId: Long, isFavorite: Boolean) {
         songDao.updateFavoriteStatus(songId, isFavorite)
+    }
+
+    override suspend fun recordSongPlayback(songId: Long) {
+        songDao.incrementPlayCount(songId, System.currentTimeMillis())
     }
 
     override suspend fun createPlaylist(name: String) {
