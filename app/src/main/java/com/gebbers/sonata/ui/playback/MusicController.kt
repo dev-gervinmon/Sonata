@@ -133,6 +133,18 @@ class MusicController @Inject constructor(
         controller?.seekTo(position)
     }
 
+    fun seekForward() {
+        val controller = controller ?: return
+        val newPosition = controller.currentPosition + 10_000L // 10 seconds
+        controller.seekTo(newPosition.coerceAtMost(controller.duration))
+    }
+
+    fun seekBack() {
+        val controller = controller ?: return
+        val newPosition = controller.currentPosition - 10_000L // 10 seconds
+        controller.seekTo(newPosition.coerceAtLeast(0L))
+    }
+
     fun togglePlayPause() {
         val controller = controller ?: return
         if (controller.isPlaying) {
