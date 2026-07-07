@@ -14,6 +14,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Queue Management**: Dynamic playlist handling with Gapless playback.
 - **Seek & Progress**: Real-time seek bar with millisecond-perfect timestamps.
 - **Shuffle & Repeat**: Full support for Shuffle mode and Repeat (Off, One, All).
+- **Smooth Transitions**: Automated fade-in/fade-out between tracks.
 
 ### 📂 Library Management
 - **MediaStore Scanner**: Automatically indexes all local music files.
@@ -33,9 +34,10 @@ The core playback engine and data infrastructure are complete. The app is curren
 
 ### 🛠️ Advanced Tools
 - **Sleep Timer**: Customizable countdown to automatically stop playback.
-- **Playback Speed & Pitch**: Adjust playback speed (0.5x - 2.0x) and pitch independently for a customized listening experience.
+- **Playback Speed & Pitch**: Adjust playback speed (0.5x - 2.0x) and pitch independently.
 - **Mini Player**: Persistent control bar for quick access while browsing the library.
 - **Full Player Screen**: Immersive Material3 bottom sheet with rich controls.
+- **Dynamic Theming**: Automatically updates the app's accent colors based on the currently playing album art for a truly modern feel.
 - **Homescreen Widget**: Control playback and see current song info directly from your homescreen.
 
 ## 🏗️ Tech Stack
@@ -45,6 +47,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **DI**: Hilt (Dagger)
 - **Concurrency**: Kotlin Coroutines & Flow
 - **Image Loading**: Coil 3
+- **Color Extraction**: Android Palette API
 - **Build System**: Kotlin DSL (build.gradle.kts) + Version Catalog (libs.versions.toml)
 
 ## 📸 Screenshots
@@ -59,7 +62,9 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Artist & Album Views.
 - [x] Homescreen Widgets.
 - [x] Tag Editor.
+- [x] Dynamic UI Polish.
 - [ ] Android Auto support.
+- [ ] Lyrics extraction and display.
 
 ---
 *Developed as a high-performance local music solution for Android.*
