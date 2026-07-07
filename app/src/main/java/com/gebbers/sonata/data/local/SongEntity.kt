@@ -13,5 +13,6 @@ data class SongEntity(
     val dataPath: String,
     val uri: String,
     val albumId: Long,
-    val dateAdded: Long
+    val dateAdded: Long,
+    val isFavorite: Boolean = false
 )
