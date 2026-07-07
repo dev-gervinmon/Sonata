@@ -29,6 +29,12 @@ class MusicController @Inject constructor(
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying = _isPlaying.asStateFlow()
 
+    private val _shuffleModeEnabled = MutableStateFlow(false)
+    val shuffleModeEnabled = _shuffleModeEnabled.asStateFlow()
+
+    private val _repeatMode = MutableStateFlow(Player.REPEAT_MODE_OFF)
+    val repeatMode = _repeatMode.asStateFlow()
+
     private val _currentSong = MutableStateFlow<Song?>(null)
     val currentSong = _currentSong.asStateFlow()
 
@@ -57,6 +63,14 @@ class MusicController @Inject constructor(
                     } else {
                         stopProgressUpdate()
                     }
+                }
+
+                override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                    _shuffleModeEnabled.value = shuffleModeEnabled
+                }
+
+                override fun onRepeatModeChanged(repeatMode: Int) {
+                    _repeatMode.value = repeatMode
                 }
 
                 override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
@@ -124,6 +138,20 @@ class MusicController @Inject constructor(
 
     fun skipToPrevious() {
         controller?.seekToPrevious()
+    }
+
+    fun toggleShuffle() {
+        val controller = controller ?: return
+        controller.shuffleModeEnabled = !controller.shuffleModeEnabled
+    }
+
+    fun toggleRepeatMode() {
+        val controller = controller ?: return
+        controller.repeatMode = when (controller.repeatMode) {
+            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+            else -> Player.REPEAT_MODE_OFF
+        }
     }
 
     fun release() {
