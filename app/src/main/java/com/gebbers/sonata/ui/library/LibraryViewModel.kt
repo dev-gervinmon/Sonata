@@ -30,6 +30,8 @@ class LibraryViewModel @Inject constructor(
 
     val currentSong = musicController.currentSong
     val isPlaying = musicController.isPlaying
+    val shuffleModeEnabled = musicController.shuffleModeEnabled
+    val repeatMode = musicController.repeatMode
     val currentPosition = musicController.currentPosition
     val duration = musicController.duration
 
@@ -87,6 +89,14 @@ class LibraryViewModel @Inject constructor(
 
     fun skipToPrevious() {
         musicController.skipToPrevious()
+    }
+
+    fun toggleShuffle() {
+        musicController.toggleShuffle()
+    }
+
+    fun toggleRepeatMode() {
+        musicController.toggleRepeatMode()
     }
 
     fun seekTo(position: Long) {
