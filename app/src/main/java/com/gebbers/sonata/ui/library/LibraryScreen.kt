@@ -1,13 +1,13 @@
 package com.gebbers.sonata.ui.library
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -39,7 +39,10 @@ fun LibraryScreen(
     val isPlayerVisible by viewModel.isPlayerSheetVisible.collectAsState()
     val isEqualizerVisible by viewModel.isEqualizerVisible.collectAsState()
 
+    var selectedSongForMenu by remember { mutableStateOf<com.gebbers.sonata.domain.model.Song?>(null) }
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val playlistSheetState = rememberModalBottomSheetState()
 
     BackHandler(enabled = browsingMode !is BrowsingMode.AllSongs) {
         viewModel.navigateBack()
@@ -146,7 +149,8 @@ fun LibraryScreen(
                                 is LibraryUiState.Success -> {
                                     SongList(
                                         songs = state.songs,
-                                        onSongClick = { viewModel.playSong(it) }
+                                        onSongClick = { viewModel.playSong(it) },
+                                        onMoreClick = { selectedSongForMenu = it }
                                     )
                                 }
                                 is LibraryUiState.Empty -> {
@@ -220,6 +224,35 @@ fun LibraryScreen(
                 },
                 onClose = { viewModel.hidePlayer() }
             )
+        }
+    }
+
+    if (selectedSongForMenu != null) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedSongForMenu = null },
+            sheetState = playlistSheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = "Add to Playlist",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
+                playlists.forEach { playlist ->
+                    ListItem(
+                        headlineContent = { Text(playlist.name) },
+                        leadingContent = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null) },
+                        modifier = Modifier.clickable {
+                            viewModel.addSongToPlaylist(playlist.id, selectedSongForMenu!!.mediaStoreId)
+                            selectedSongForMenu = null
+                        }
+                    )
+                }
+            }
         }
     }
 }
