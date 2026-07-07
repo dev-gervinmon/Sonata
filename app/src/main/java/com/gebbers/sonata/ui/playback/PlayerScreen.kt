@@ -3,6 +3,7 @@ package com.gebbers.sonata.ui.playback
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Snooze
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,16 +21,21 @@ fun PlayerScreen(
     repeatMode: Int,
     currentPosition: Long,
     duration: Long,
+    sleepTimerMillisLeft: Long?,
     onTogglePlayPause: () -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleRepeatMode: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     onSeek: (Long) -> Unit,
+    onSetSleepTimer: (Int) -> Unit,
+    onCancelSleepTimer: () -> Unit,
     onOpenEqualizer: () -> Unit,
     onClose: () -> Unit
 ) {
     if (song == null) return
+
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -46,8 +52,17 @@ fun PlayerScreen(
             IconButton(onClick = onClose) {
                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Close")
             }
-            IconButton(onClick = onOpenEqualizer) {
-                Icon(Icons.Default.Equalizer, contentDescription = "Equalizer")
+            Row {
+                IconButton(onClick = { showSleepTimerDialog = true }) {
+                    Icon(
+                        imageVector = if (sleepTimerMillisLeft != null) Icons.Default.Timer else Icons.Default.Timer,
+                        contentDescription = "Sleep Timer",
+                        tint = if (sleepTimerMillisLeft != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                IconButton(onClick = onOpenEqualizer) {
+                    Icon(Icons.Default.Equalizer, contentDescription = "Equalizer")
+                }
             }
         }
 
@@ -153,6 +168,69 @@ fun PlayerScreen(
             }
         }
     }
+    if (showSleepTimerDialog) {
+        SleepTimerDialog(
+            currentMillisLeft = sleepTimerMillisLeft,
+            onDismiss = { showSleepTimerDialog = false },
+            onSetTimer = {
+                onSetSleepTimer(it)
+                showSleepTimerDialog = false
+            },
+            onCancelTimer = {
+                onCancelSleepTimer()
+                showSleepTimerDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun SleepTimerDialog(
+    currentMillisLeft: Long?,
+    onDismiss: () -> Unit,
+    onSetTimer: (Int) -> Unit,
+    onCancelTimer: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Sleep Timer") },
+        text = {
+            Column {
+                if (currentMillisLeft != null) {
+                    Text(
+                        text = "Time remaining: ${formatDuration(currentMillisLeft)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+                Text("Turn off playback in:")
+                Spacer(modifier = Modifier.height(8.dp))
+                val options = listOf(5, 15, 30, 60)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    options.forEach { minutes ->
+                        OutlinedButton(onClick = { onSetTimer(minutes) }) {
+                            Text("$minutes m")
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (currentMillisLeft != null) {
+                TextButton(onClick = onCancelTimer) {
+                    Text("Cancel Timer")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        }
+    )
 }
 
 private fun formatDuration(durationMs: Long): String {
