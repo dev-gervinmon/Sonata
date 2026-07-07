@@ -161,6 +161,12 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    fun updateSongTags(songId: Long, title: String, artist: String, album: String) {
+        viewModelScope.launch {
+            musicRepository.updateSongTags(songId, title, artist, album)
+        }
+    }
+
     fun toggleFavorite(song: Song) {
         viewModelScope.launch {
             musicRepository.toggleFavorite(song.mediaStoreId, !song.isFavorite)
