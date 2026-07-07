@@ -16,9 +16,13 @@ import com.gebbers.sonata.domain.model.Song
 fun PlayerScreen(
     song: Song?,
     isPlaying: Boolean,
+    shuffleModeEnabled: Boolean,
+    repeatMode: Int,
     currentPosition: Long,
     duration: Long,
     onTogglePlayPause: () -> Unit,
+    onToggleShuffle: () -> Unit,
+    onToggleRepeatMode: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -105,6 +109,13 @@ fun PlayerScreen(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(onClick = onToggleShuffle) {
+                Icon(
+                    imageVector = Icons.Default.Shuffle,
+                    contentDescription = "Shuffle",
+                    tint = if (shuffleModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
+            }
             IconButton(onClick = onSkipPrevious, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", modifier = Modifier.size(32.dp))
             }
@@ -121,6 +132,17 @@ fun PlayerScreen(
             }
             IconButton(onClick = onSkipNext, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.Default.SkipNext, contentDescription = "Next", modifier = Modifier.size(32.dp))
+            }
+            IconButton(onClick = onToggleRepeatMode) {
+                Icon(
+                    imageVector = when (repeatMode) {
+                        androidx.media3.common.Player.REPEAT_MODE_ONE -> Icons.Default.RepeatOne
+                        androidx.media3.common.Player.REPEAT_MODE_ALL -> Icons.Default.Repeat
+                        else -> Icons.Default.Repeat
+                    },
+                    contentDescription = "Repeat",
+                    tint = if (repeatMode != androidx.media3.common.Player.REPEAT_MODE_OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
