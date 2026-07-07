@@ -1,6 +1,8 @@
 package com.gebbers.sonata.ui.library
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -103,6 +105,8 @@ fun LibraryScreen(
                     song = currentSong,
                     isPlaying = isPlaying,
                     onTogglePlayPause = { viewModel.togglePlayPause() },
+                    onNext = { viewModel.skipToNext() },
+                    onPrevious = { viewModel.skipToPrevious() },
                     onClick = { viewModel.showPlayer() }
                 )
             }
@@ -198,59 +202,85 @@ fun LibraryScreen(
                 }
 
                 Box(modifier = Modifier.weight(1f)) {
-                    when {
-                        browsingMode is BrowsingMode.Folders && searchQuery.isEmpty() -> {
-                            FolderList(
-                                folders = folders,
-                                onFolderClick = { viewModel.setBrowsingMode(BrowsingMode.FolderDetail(it)) }
-                            )
-                        }
-                        browsingMode is BrowsingMode.Playlists && searchQuery.isEmpty() -> {
-                            PlaylistList(
-                                playlists = playlists,
-                                onPlaylistClick = { viewModel.setBrowsingMode(BrowsingMode.PlaylistDetail(it)) },
-                                onCreatePlaylist = { viewModel.createPlaylist(it) }
-                            )
-                        }
-                        else -> {
-                            when (val state = uiState) {
-                                is LibraryUiState.Loading -> {
-                                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                                }
-                                is LibraryUiState.Success -> {
-                                    SongList(
-                                        songs = state.songs,
-                                        onSongClick = { viewModel.playSong(it) },
-                                        onMoreClick = { selectedSongForMenu = it }
-                                    )
-                                }
-                                is LibraryUiState.Empty -> {
-                                    Text(
-                                        text = when (browsingMode) {
-                                            is BrowsingMode.PlaylistDetail -> "This playlist is empty"
-                                            else -> "No music found on device"
-                                        },
-                                        modifier = Modifier.align(Alignment.Center)
-                                    )
-                                }
-                                is LibraryUiState.NoResults -> {
-                                    Text(
-                                        text = "No results found for \"$searchQuery\"",
-                                        modifier = Modifier.align(Alignment.Center)
-                                    )
-                                }
-                                is LibraryUiState.PermissionDenied -> {
-                                    Text(
-                                        text = "Permission denied. Please grant storage access.",
-                                        modifier = Modifier.align(Alignment.Center)
-                                    )
-                                }
-                                is LibraryUiState.Error -> {
-                                    Text(
-                                        text = "Error: ${state.message}",
-                                        color = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.align(Alignment.Center)
-                                    )
+                    AnimatedContent(
+                        targetState = browsingMode,
+                        transitionSpec = {
+                            if (targetState is BrowsingMode.AllSongs) {
+                                slideInHorizontally { -it } + fadeIn() togetherWith
+                                        slideOutHorizontally { it } + fadeOut()
+                            } else {
+                                slideInHorizontally { it } + fadeIn() togetherWith
+                                        slideOutHorizontally { -it } + fadeOut()
+                            }.using(SizeTransform(clip = false))
+                        },
+                        label = "browsing_mode_transition"
+                    ) { mode ->
+                        when {
+                            mode is BrowsingMode.Artists && searchQuery.isEmpty() -> {
+                                ArtistList(
+                                    artists = artists,
+                                    onArtistClick = { viewModel.setBrowsingMode(BrowsingMode.ArtistDetail(it)) }
+                                )
+                            }
+                            mode is BrowsingMode.Albums && searchQuery.isEmpty() -> {
+                                AlbumGrid(
+                                    albums = albums,
+                                    onAlbumClick = { viewModel.setBrowsingMode(BrowsingMode.AlbumDetail(it)) }
+                                )
+                            }
+                            mode is BrowsingMode.Folders && searchQuery.isEmpty() -> {
+                                FolderList(
+                                    folders = folders,
+                                    onFolderClick = { viewModel.setBrowsingMode(BrowsingMode.FolderDetail(it)) }
+                                )
+                            }
+                            mode is BrowsingMode.Playlists && searchQuery.isEmpty() -> {
+                                PlaylistList(
+                                    playlists = playlists,
+                                    onPlaylistClick = { viewModel.setBrowsingMode(BrowsingMode.PlaylistDetail(it)) },
+                                    onCreatePlaylist = { viewModel.createPlaylist(it) }
+                                )
+                            }
+                            else -> {
+                                when (val state = uiState) {
+                                    is LibraryUiState.Loading -> {
+                                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                                    }
+                                    is LibraryUiState.Success -> {
+                                        SongList(
+                                            songs = state.songs,
+                                            onSongClick = { viewModel.playSong(it) },
+                                            onMoreClick = { selectedSongForMenu = it }
+                                        )
+                                    }
+                                    is LibraryUiState.Empty -> {
+                                        Text(
+                                            text = when (mode) {
+                                                is BrowsingMode.PlaylistDetail -> "This playlist is empty"
+                                                else -> "No music found on device"
+                                            },
+                                            modifier = Modifier.align(Alignment.Center)
+                                        )
+                                    }
+                                    is LibraryUiState.NoResults -> {
+                                        Text(
+                                            text = "No results found for \"$searchQuery\"",
+                                            modifier = Modifier.align(Alignment.Center)
+                                        )
+                                    }
+                                    is LibraryUiState.PermissionDenied -> {
+                                        Text(
+                                            text = "Permission denied. Please grant storage access.",
+                                            modifier = Modifier.align(Alignment.Center)
+                                        )
+                                    }
+                                    is LibraryUiState.Error -> {
+                                        Text(
+                                            text = "Error: ${state.message}",
+                                            color = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.align(Alignment.Center)
+                                        )
+                                    }
                                 }
                             }
                         }
