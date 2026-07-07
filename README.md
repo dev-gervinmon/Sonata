@@ -38,12 +38,13 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Mini Player**: Persistent control bar for quick access while browsing the library.
 - **Full Player Screen**: Immersive Material3 bottom sheet with rich controls.
 - **Dynamic Theming**: Automatically updates the app's accent colors based on the currently playing album art.
+- **Android Auto Support**: Full integration with the Android Auto media ecosystem for a safe and professional driving experience.
 - **Settings Page**: Customizable experience including theme toggles and library management.
 - **Homescreen Widget**: Control playback and see current song info directly from your homescreen.
 
 ## 🏗️ Tech Stack
 - **UI**: Jetpack Compose (Material 3)
-- **Engine**: Jetpack Media3 (ExoPlayer + Session)
+- **Engine**: Jetpack Media3 (ExoPlayer + Session + Library)
 - **Database**: Room Persistence Library
 - **DI**: Hilt (Dagger)
 - **Concurrency**: Kotlin Coroutines & Flow
@@ -64,9 +65,9 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Homescreen Widgets.
 - [x] Tag Editor.
 - [x] Dynamic UI Polish.
-- [x] Settings Page.
-- [ ] Android Auto support.
+- [x] Android Auto support.
 - [ ] Lyrics extraction and display.
+- [ ] Gapless Playback fine-tuning.
 
 ---
 *Developed as a high-performance local music solution for Android.*
