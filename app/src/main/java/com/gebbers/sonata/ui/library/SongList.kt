@@ -1,5 +1,6 @@
 package com.gebbers.sonata.ui.library
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,11 +32,17 @@ fun SongList(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items(songs, key = { it.mediaStoreId }) { song ->
-            SongItem(
-                song = song,
-                onClick = { onSongClick(song) },
-                onMoreClick = { onMoreClick(song) }
-            )
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                SongItem(
+                    song = song,
+                    onClick = { onSongClick(song) },
+                    onMoreClick = { onMoreClick(song) }
+                )
+            }
         }
     }
 }
