@@ -26,6 +26,8 @@ fun LibraryScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val currentSong by viewModel.currentSong.collectAsState()
     val isPlaying by viewModel.isPlaying.collectAsState()
+    val shuffleModeEnabled by viewModel.shuffleModeEnabled.collectAsState()
+    val repeatMode by viewModel.repeatMode.collectAsState()
     val currentPosition by viewModel.currentPosition.collectAsState()
     val duration by viewModel.duration.collectAsState()
     val isPlayerVisible by viewModel.isPlayerSheetVisible.collectAsState()
@@ -119,9 +121,13 @@ fun LibraryScreen(
             PlayerScreen(
                 song = currentSong,
                 isPlaying = isPlaying,
+                shuffleModeEnabled = shuffleModeEnabled,
+                repeatMode = repeatMode,
                 currentPosition = currentPosition,
                 duration = duration,
                 onTogglePlayPause = { viewModel.togglePlayPause() },
+                onToggleShuffle = { viewModel.toggleShuffle() },
+                onToggleRepeatMode = { viewModel.toggleRepeatMode() },
                 onSkipNext = { viewModel.skipToNext() },
                 onSkipPrevious = { viewModel.skipToPrevious() },
                 onSeek = { viewModel.seekTo(it) },
