@@ -56,6 +56,8 @@ fun Song.toMediaItem(): MediaItem {
                 .setArtist(artist)
                 .setAlbumTitle(album)
                 .setArtworkUri(Uri.parse(albumArtUri))
+                .setIsBrowsable(false)
+                .setIsPlayable(true)
                 .build()
         )
         .build()
