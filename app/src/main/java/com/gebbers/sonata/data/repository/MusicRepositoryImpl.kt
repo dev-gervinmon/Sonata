@@ -1,5 +1,9 @@
 package com.gebbers.sonata.data.repository
 
+import android.content.ContentUris
+import android.content.ContentValues
+import android.content.Context
+import android.provider.MediaStore
 import com.gebbers.sonata.data.local.PlaylistDao
 import com.gebbers.sonata.data.local.PlaylistEntity
 import com.gebbers.sonata.data.local.PlaylistSongCrossRef
@@ -12,6 +16,7 @@ import com.gebbers.sonata.domain.model.Folder
 import com.gebbers.sonata.domain.model.Playlist
 import com.gebbers.sonata.domain.model.Song
 import com.gebbers.sonata.domain.repository.MusicRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,6 +27,7 @@ import javax.inject.Singleton
 
 @Singleton
 class MusicRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val songDao: SongDao,
     private val playlistDao: PlaylistDao,
     private val musicScanner: MusicScanner
@@ -134,6 +140,31 @@ class MusicRepositoryImpl @Inject constructor(
 
     override suspend fun removeSongFromPlaylist(playlistId: Long, mediaStoreId: Long) {
         playlistDao.removeSongFromPlaylist(PlaylistSongCrossRef(playlistId, mediaStoreId))
+    }
+
+    override suspend fun updateSongTags(songId: Long, newTitle: String, newArtist: String, newAlbum: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Audio.Media.TITLE, newTitle)
+                put(MediaStore.Audio.Media.ARTIST, newArtist)
+                put(MediaStore.Audio.Media.ALBUM, newAlbum)
+            }
+
+            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+            val updated = context.contentResolver.update(uri, contentValues, null, null)
+            
+            if (updated > 0) {
+                // Update local Room DB too for immediate feedback
+                // Note: Real implementation would need a DAO method to update individual fields
+                // For now we'll just trigger a refresh of the library
+                refreshLibrary()
+                return@withContext true
+            }
+            false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
     override fun searchSongs(query: String): Flow<List<Song>> {
