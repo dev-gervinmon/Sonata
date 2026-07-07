@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import com.gebbers.sonata.ui.equalizer.EqualizerViewModel
 import com.gebbers.sonata.ui.library.LibraryScreen
 import com.gebbers.sonata.ui.library.LibraryViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,6 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: LibraryViewModel by viewModels()
+    private val equalizerViewModel: EqualizerViewModel by viewModels()
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -38,7 +40,8 @@ class MainActivity : AppCompatActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     LibraryScreen(
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        equalizerViewModel = equalizerViewModel
                     )
                 }
             }
