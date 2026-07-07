@@ -6,6 +6,8 @@ import com.gebbers.sonata.data.local.PlaylistSongCrossRef
 import com.gebbers.sonata.data.local.SongDao
 import com.gebbers.sonata.data.mapper.toEntity
 import com.gebbers.sonata.data.mapper.toSong
+import com.gebbers.sonata.domain.model.Album
+import com.gebbers.sonata.domain.model.Artist
 import com.gebbers.sonata.domain.model.Folder
 import com.gebbers.sonata.domain.model.Playlist
 import com.gebbers.sonata.domain.model.Song
@@ -40,6 +42,18 @@ class MusicRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getSongsByArtist(artistName: String): Flow<List<Song>> {
+        return songDao.getAllSongs().map { entities ->
+            entities.filter { it.artist == artistName }.map { it.toSong() }
+        }
+    }
+
+    override fun getSongsByAlbum(albumId: Long): Flow<List<Song>> {
+        return songDao.getAllSongs().map { entities ->
+            entities.filter { it.albumId == albumId }.map { it.toSong() }
+        }
+    }
+
     override fun getAllFolders(): Flow<List<Folder>> {
         return songDao.getAllSongs().map { entities ->
             entities.groupBy { 
@@ -49,6 +63,33 @@ class MusicRepositoryImpl @Inject constructor(
                 Folder(
                     name = path.substringAfterLast('/'),
                     path = path,
+                    songCount = songs.size
+                )
+            }.sortedBy { it.name }
+        }
+    }
+
+    override fun getAllArtists(): Flow<List<Artist>> {
+        return songDao.getAllSongs().map { entities ->
+            entities.groupBy { it.artist }.map { (name, songs) ->
+                Artist(
+                    name = name,
+                    albumCount = songs.distinctBy { it.albumId }.size,
+                    songCount = songs.size
+                )
+            }.sortedBy { it.name }
+        }
+    }
+
+    override fun getAllAlbums(): Flow<List<Album>> {
+        return songDao.getAllSongs().map { entities ->
+            entities.groupBy { it.albumId }.map { (id, songs) ->
+                val firstSong = songs.first()
+                Album(
+                    id = id,
+                    name = firstSong.album,
+                    artist = firstSong.artist,
+                    albumArtUri = firstSong.toSong().albumArtUri,
                     songCount = songs.size
                 )
             }.sortedBy { it.name }
