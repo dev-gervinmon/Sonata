@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.palette.ktx)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
