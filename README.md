@@ -34,6 +34,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Playback Speed & Pitch**: Adjust playback speed (0.5x - 2.0x) and pitch independently for a customized listening experience.
 - **Mini Player**: Persistent control bar for quick access while browsing the library.
 - **Full Player Screen**: Immersive Material3 bottom sheet with rich controls.
+- **Homescreen Widget**: Control playback and see current song info directly from your homescreen.
 
 ## 🏗️ Tech Stack
 - **UI**: Jetpack Compose (Material 3)
@@ -53,7 +54,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Custom Playlist creation.
 - [x] Favorites System.
 - [x] Artist & Album Views.
-- [ ] Homescreen Widgets.
+- [x] Homescreen Widgets.
 - [ ] Android Auto support.
 
 ---
