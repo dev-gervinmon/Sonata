@@ -69,6 +69,16 @@ class MusicRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getFavoriteSongs(): Flow<List<Song>> {
+        return songDao.getFavoriteSongs().map { entities ->
+            entities.map { it.toSong() }
+        }
+    }
+
+    override suspend fun toggleFavorite(songId: Long, isFavorite: Boolean) {
+        songDao.updateFavoriteStatus(songId, isFavorite)
+    }
+
     override suspend fun createPlaylist(name: String) {
         playlistDao.insertPlaylist(PlaylistEntity(name = name))
     }
