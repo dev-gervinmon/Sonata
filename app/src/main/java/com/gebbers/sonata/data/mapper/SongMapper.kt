@@ -22,7 +22,8 @@ fun SongEntity.toSong(): Song {
         dataPath = dataPath,
         uri = uri,
         albumId = albumId,
-        albumArtUri = albumArtUri
+        albumArtUri = albumArtUri,
+        isFavorite = isFavorite
     )
 }
 
@@ -36,7 +37,8 @@ fun Song.toEntity(dateAdded: Long = System.currentTimeMillis()): SongEntity {
         dataPath = dataPath,
         uri = uri,
         albumId = albumId,
-        dateAdded = dateAdded
+        dateAdded = dateAdded,
+        isFavorite = isFavorite
     )
 }
 
