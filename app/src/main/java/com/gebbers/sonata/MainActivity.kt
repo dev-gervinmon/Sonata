@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import com.gebbers.sonata.ui.equalizer.EqualizerViewModel
 import com.gebbers.sonata.ui.library.LibraryScreen
 import com.gebbers.sonata.ui.library.LibraryViewModel
+import com.gebbers.sonata.ui.settings.SettingsViewModel
 import com.gebbers.sonata.ui.theme.SonataTheme
 import com.gebbers.sonata.ui.theme.ThemeViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: LibraryViewModel by viewModels()
     private val equalizerViewModel: EqualizerViewModel by viewModels()
     private val themeViewModel: ThemeViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -56,7 +58,8 @@ class MainActivity : AppCompatActivity() {
                 ) {
                     LibraryScreen(
                         viewModel = viewModel,
-                        equalizerViewModel = equalizerViewModel
+                        equalizerViewModel = equalizerViewModel,
+                        settingsViewModel = settingsViewModel
                     )
                 }
             }
