@@ -63,6 +63,9 @@ class LibraryViewModel @Inject constructor(
     private val _isEqualizerVisible = MutableStateFlow(false)
     val isEqualizerVisible = _isEqualizerVisible.asStateFlow()
 
+    private val _isSettingsVisible = MutableStateFlow(false)
+    val isSettingsVisible = _isSettingsVisible.asStateFlow()
+
     private val _folders = MutableStateFlow<List<com.gebbers.sonata.domain.model.Folder>>(emptyList())
     val folders = _folders.asStateFlow()
 
@@ -284,6 +287,14 @@ class LibraryViewModel @Inject constructor(
 
     fun hideEqualizer() {
         _isEqualizerVisible.value = false
+    }
+
+    fun showSettings() {
+        _isSettingsVisible.value = true
+    }
+
+    fun hideSettings() {
+        _isSettingsVisible.value = false
     }
 
     fun refreshLibrary() {
