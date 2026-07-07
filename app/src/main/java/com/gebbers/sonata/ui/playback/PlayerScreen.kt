@@ -1,17 +1,22 @@
 package com.gebbers.sonata.ui.playback
 
+import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Snooze
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.gebbers.sonata.domain.model.Song
 
@@ -47,156 +52,218 @@ fun PlayerScreen(
     var showSleepTimerDialog by remember { mutableStateOf(false) }
     var showPlaybackSettingsDialog by remember { mutableStateOf(false) }
 
-    Column(
+    val backgroundColor = MaterialTheme.colorScheme.surface
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        surfaceVariant.copy(alpha = 0.5f),
+                        backgroundColor
+                    )
+                )
+            )
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = onClose) {
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Close")
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Close")
+                }
+                
+                Text(
+                    text = "NOW PLAYING",
+                    style = MaterialTheme.typography.labelLarge,
+                    letterSpacing = 2.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Row {
+                    IconButton(onClick = { showSleepTimerDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Timer,
+                            contentDescription = "Sleep Timer",
+                            tint = if (sleepTimerMillisLeft != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    IconButton(onClick = { showPlaybackSettingsDialog = true }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Playback Settings")
+                    }
+                    IconButton(onClick = onOpenEqualizer) {
+                        Icon(Icons.Default.Equalizer, contentDescription = "Equalizer")
+                    }
+                }
             }
-            Row {
-                IconButton(onClick = { showSleepTimerDialog = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Timer,
-                        contentDescription = "Sleep Timer",
-                        tint = if (sleepTimerMillisLeft != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Album Art with Shadow/Elevation
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .aspectRatio(1f),
+                shape = MaterialTheme.shapes.extraLarge,
+                elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+            ) {
+                AsyncImage(
+                    model = song.albumArtUri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.MusicNote)
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Song Info
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = song.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = song.artist,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    IconButton(
+                        onClick = { onToggleFavorite(song) },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (song.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (song.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Progress Bar
+            Column {
+                Slider(
+                    value = currentPosition.toFloat(),
+                    onValueChange = { onSeek(it.toLong()) },
+                    valueRange = 0f..duration.toFloat().coerceAtLeast(1f),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = formatDuration(currentPosition),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = formatDuration(duration),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                IconButton(onClick = { showPlaybackSettingsDialog = true }) {
-                    Icon(Icons.Default.Settings, contentDescription = "Playback Settings")
-                }
-                IconButton(onClick = onOpenEqualizer) {
-                    Icon(Icons.Default.Equalizer, contentDescription = "Equalizer")
-                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Album Art Placeholder
-        Surface(
-            modifier = Modifier
-                .size(300.dp)
-                .aspectRatio(1f),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceVariant
-        ) {
-            AsyncImage(
-                model = song.albumArtUri,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.MusicNote)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = song.title,
-            style = MaterialTheme.typography.headlineMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = song.artist,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f, fill = false)
-            )
-            IconButton(onClick = { onToggleFavorite(song) }) {
-                Icon(
-                    imageVector = if (song.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorite",
-                    tint = if (song.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Progress Bar
-        Slider(
-            value = currentPosition.toFloat(),
-            onValueChange = { onSeek(it.toLong()) },
-            valueRange = 0f..duration.toFloat().coerceAtLeast(1f),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text = formatDuration(currentPosition), style = MaterialTheme.typography.bodySmall)
-            Text(text = formatDuration(duration), style = MaterialTheme.typography.bodySmall)
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Controls
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onToggleShuffle) {
-                Icon(
-                    imageVector = Icons.Default.Shuffle,
-                    contentDescription = "Shuffle",
-                    tint = if (shuffleModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                )
-            }
-            IconButton(onClick = onSkipPrevious, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", modifier = Modifier.size(32.dp))
-            }
-            IconButton(onClick = onSeekBack, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.Default.Replay10, contentDescription = "Rewind 10s", modifier = Modifier.size(32.dp))
-            }
-            FilledIconButton(
-                onClick = onTogglePlayPause,
-                modifier = Modifier.size(72.dp),
-                shape = MaterialTheme.shapes.extraLarge
+            // Controls
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    modifier = Modifier.size(40.dp)
-                )
+                IconButton(onClick = onToggleShuffle) {
+                    Icon(
+                        imageVector = Icons.Default.Shuffle,
+                        contentDescription = "Shuffle",
+                        tint = if (shuffleModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    IconButton(onClick = onSkipPrevious, modifier = Modifier.size(56.dp)) {
+                        Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", modifier = Modifier.size(36.dp))
+                    }
+                    
+                    FilledIconButton(
+                        onClick = onTogglePlayPause,
+                        modifier = Modifier.size(80.dp),
+                        shape = CircleShape,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            modifier = Modifier.size(44.dp)
+                        )
+                    }
+
+                    IconButton(onClick = onSkipNext, modifier = Modifier.size(56.dp)) {
+                        Icon(Icons.Default.SkipNext, contentDescription = "Next", modifier = Modifier.size(36.dp))
+                    }
+                }
+
+                IconButton(onClick = onToggleRepeatMode) {
+                    Icon(
+                        imageVector = when (repeatMode) {
+                            androidx.media3.common.Player.REPEAT_MODE_ONE -> Icons.Default.RepeatOne
+                            else -> Icons.Default.Repeat
+                        },
+                        contentDescription = "Repeat",
+                        tint = if (repeatMode != androidx.media3.common.Player.REPEAT_MODE_OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
-            IconButton(onClick = onSeekForward, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.Default.Forward10, contentDescription = "Forward 10s", modifier = Modifier.size(32.dp))
-            }
-            IconButton(onClick = onSkipNext, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.Default.SkipNext, contentDescription = "Next", modifier = Modifier.size(32.dp))
-            }
-            IconButton(onClick = onToggleRepeatMode) {
-                Icon(
-                    imageVector = when (repeatMode) {
-                        androidx.media3.common.Player.REPEAT_MODE_ONE -> Icons.Default.RepeatOne
-                        androidx.media3.common.Player.REPEAT_MODE_ALL -> Icons.Default.Repeat
-                        else -> Icons.Default.Repeat
-                    },
-                    contentDescription = "Repeat",
-                    tint = if (repeatMode != androidx.media3.common.Player.REPEAT_MODE_OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                )
-            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
+
     if (showSleepTimerDialog) {
         SleepTimerDialog(
             currentMillisLeft = sleepTimerMillisLeft,
