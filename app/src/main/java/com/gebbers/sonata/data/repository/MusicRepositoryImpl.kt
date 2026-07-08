@@ -1,13 +1,9 @@
 package com.gebbers.sonata.data.repository
 
-import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.provider.MediaStore
-import com.gebbers.sonata.data.local.PlaylistDao
-import com.gebbers.sonata.data.local.PlaylistEntity
-import com.gebbers.sonata.data.local.PlaylistSongCrossRef
-import com.gebbers.sonata.data.local.SongDao
+import com.gebbers.sonata.data.local.*
 import com.gebbers.sonata.data.mapper.toEntity
 import com.gebbers.sonata.data.mapper.toSong
 import com.gebbers.sonata.domain.model.Album
@@ -19,6 +15,7 @@ import com.gebbers.sonata.domain.repository.MusicRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -30,6 +27,7 @@ class MusicRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val songDao: SongDao,
     private val playlistDao: PlaylistDao,
+    private val excludedFolderDao: ExcludedFolderDao,
     private val musicScanner: MusicScanner
 ) : MusicRepository {
 
@@ -57,6 +55,18 @@ class MusicRepositoryImpl @Inject constructor(
     override fun getSongsByAlbum(albumId: Long): Flow<List<Song>> {
         return songDao.getAllSongs().map { entities ->
             entities.filter { it.albumId == albumId }.map { it.toSong() }
+        }
+    }
+
+    override fun getSongsByGenre(genreName: String): Flow<List<Song>> {
+        return songDao.getAllSongs().map { entities ->
+            entities.filter { it.genre == genreName }.map { it.toSong() }
+        }
+    }
+
+    override fun getSongsByYear(year: Int): Flow<List<Song>> {
+        return songDao.getAllSongs().map { entities ->
+            entities.filter { it.year == year }.map { it.toSong() }
         }
     }
 
@@ -99,6 +109,18 @@ class MusicRepositoryImpl @Inject constructor(
                     songCount = songs.size
                 )
             }.sortedBy { it.name }
+        }
+    }
+
+    override fun getAllGenres(): Flow<List<String>> {
+        return songDao.getAllSongs().map { entities ->
+            entities.mapNotNull { it.genre }.distinct().sorted()
+        }
+    }
+
+    override fun getAllYears(): Flow<List<Int>> {
+        return songDao.getAllSongs().map { entities ->
+            entities.mapNotNull { it.year }.distinct().sortedDescending()
         }
     }
 
@@ -176,9 +198,6 @@ class MusicRepositoryImpl @Inject constructor(
             val updated = context.contentResolver.update(uri, contentValues, null, null)
             
             if (updated > 0) {
-                // Update local Room DB too for immediate feedback
-                // Note: Real implementation would need a DAO method to update individual fields
-                // For now we'll just trigger a refresh of the library
                 refreshLibrary()
                 return@withContext true
             }
@@ -189,6 +208,22 @@ class MusicRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getExcludedFolders(): Flow<List<String>> {
+        return excludedFolderDao.getAllExcludedFolders().map { entities ->
+            entities.map { it.path }
+        }
+    }
+
+    override suspend fun excludeFolder(path: String) {
+        excludedFolderDao.insertExcludedFolder(ExcludedFolderEntity(path))
+        refreshLibrary()
+    }
+
+    override suspend fun includeFolder(path: String) {
+        excludedFolderDao.deleteExcludedFolder(ExcludedFolderEntity(path))
+        refreshLibrary()
+    }
+
     override fun searchSongs(query: String): Flow<List<Song>> {
         return songDao.searchSongs(query).map { entities ->
             entities.map { it.toSong() }
@@ -196,10 +231,11 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun refreshLibrary() = withContext(Dispatchers.IO) {
-        val scannnedSongs = musicScanner.scanInternalStorage()
-        if (scannnedSongs.isNotEmpty()) {
-            songDao.insertSongs(scannnedSongs.map { it.toEntity() })
-            songDao.deleteRemovedSongs(scannnedSongs.map { it.mediaStoreId })
+        val excludedFolders = excludedFolderDao.getAllExcludedFolders().first().map { it.path }
+        val scannedSongs = musicScanner.scanInternalStorage(excludedFolders)
+        if (scannedSongs.isNotEmpty()) {
+            songDao.insertSongs(scannedSongs.map { it.toEntity() })
+            songDao.deleteRemovedSongs(scannedSongs.map { it.mediaStoreId })
         }
     }
 }
