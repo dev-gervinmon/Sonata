@@ -35,6 +35,8 @@ fun LibraryScreen(
     val folders by viewModel.folders.collectAsState()
     val artists by viewModel.artists.collectAsState()
     val albums by viewModel.albums.collectAsState()
+    val genres by viewModel.genres.collectAsState()
+    val years by viewModel.years.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val currentSong by viewModel.currentSong.collectAsState()
@@ -85,6 +87,8 @@ fun LibraryScreen(
                                 is BrowsingMode.FolderDetail -> mode.folder.name
                                 is BrowsingMode.ArtistDetail -> mode.artist.name
                                 is BrowsingMode.AlbumDetail -> mode.album.name
+                                is BrowsingMode.GenreDetail -> mode.genre
+                                is BrowsingMode.YearDetail -> mode.year.toString()
                                 is BrowsingMode.PlaylistDetail -> mode.playlist.name
                                 BrowsingMode.RecentlyAdded -> "Recently Added"
                                 BrowsingMode.RecentlyPlayed -> "Recently Played"
@@ -119,6 +123,8 @@ fun LibraryScreen(
                 if (browsingMode !is BrowsingMode.FolderDetail && 
                     browsingMode !is BrowsingMode.ArtistDetail && 
                     browsingMode !is BrowsingMode.AlbumDetail && 
+                    browsingMode !is BrowsingMode.GenreDetail &&
+                    browsingMode !is BrowsingMode.YearDetail &&
                     browsingMode !is BrowsingMode.PlaylistDetail) {
                     TextField(
                         value = searchQuery,
@@ -141,12 +147,14 @@ fun LibraryScreen(
                             is BrowsingMode.AllSongs -> 0
                             is BrowsingMode.Artists -> 1
                             is BrowsingMode.Albums -> 2
-                            is BrowsingMode.Folders -> 3
-                            is BrowsingMode.Playlists -> 4
-                            is BrowsingMode.Favorites -> 5
-                            is BrowsingMode.RecentlyAdded -> 6
-                            is BrowsingMode.RecentlyPlayed -> 7
-                            is BrowsingMode.MostPlayed -> 8
+                            is BrowsingMode.Genres -> 3
+                            is BrowsingMode.Years -> 4
+                            is BrowsingMode.Folders -> 5
+                            is BrowsingMode.Playlists -> 6
+                            is BrowsingMode.Favorites -> 7
+                            is BrowsingMode.RecentlyAdded -> 8
+                            is BrowsingMode.RecentlyPlayed -> 9
+                            is BrowsingMode.MostPlayed -> 10
                             else -> 0
                         },
                         containerColor = MaterialTheme.colorScheme.background,
@@ -167,6 +175,16 @@ fun LibraryScreen(
                             selected = browsingMode is BrowsingMode.Albums,
                             onClick = { viewModel.setBrowsingMode(BrowsingMode.Albums) },
                             text = { Text("Albums") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.Genres,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.Genres) },
+                            text = { Text("Genres") }
+                        )
+                        Tab(
+                            selected = browsingMode is BrowsingMode.Years,
+                            onClick = { viewModel.setBrowsingMode(BrowsingMode.Years) },
+                            text = { Text("Years") }
                         )
                         Tab(
                             selected = browsingMode is BrowsingMode.Folders,
@@ -226,6 +244,18 @@ fun LibraryScreen(
                                 AlbumGrid(
                                     albums = albums,
                                     onAlbumClick = { viewModel.setBrowsingMode(BrowsingMode.AlbumDetail(it)) }
+                                )
+                            }
+                            mode is BrowsingMode.Genres && searchQuery.isEmpty() -> {
+                                GenreList(
+                                    genres = genres,
+                                    onGenreClick = { viewModel.setBrowsingMode(BrowsingMode.GenreDetail(it)) }
+                                )
+                            }
+                            mode is BrowsingMode.Years && searchQuery.isEmpty() -> {
+                                YearList(
+                                    years = years,
+                                    onYearClick = { viewModel.setBrowsingMode(BrowsingMode.YearDetail(it)) }
                                 )
                             }
                             mode is BrowsingMode.Folders && searchQuery.isEmpty() -> {
