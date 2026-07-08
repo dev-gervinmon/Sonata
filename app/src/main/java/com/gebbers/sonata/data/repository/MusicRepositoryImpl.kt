@@ -210,6 +210,16 @@ class MusicRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getLyrics(song: Song): String? = withContext(Dispatchers.IO) {
+        if (song.lyrics != null) return@withContext song.lyrics
+        
+        val lyrics = musicScanner.getLyrics(song.dataPath)
+        if (lyrics != null) {
+            songDao.updateLyrics(song.mediaStoreId, lyrics)
+        }
+        lyrics
+    }
+
     override fun getExcludedFolders(): Flow<List<String>> {
         return excludedFolderDao.getAllExcludedFolders().map { entities ->
             entities.map { it.path }
