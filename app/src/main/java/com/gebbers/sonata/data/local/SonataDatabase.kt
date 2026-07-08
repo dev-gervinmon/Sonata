@@ -7,14 +7,16 @@ import androidx.room.RoomDatabase
     entities = [
         SongEntity::class,
         PlaylistEntity::class,
-        PlaylistSongCrossRef::class
+        PlaylistSongCrossRef::class,
+        ExcludedFolderEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class SonataDatabase : RoomDatabase() {
     abstract fun songDao(): SongDao
     abstract fun playlistDao(): PlaylistDao
+    abstract fun excludedFolderDao(): ExcludedFolderDao
 
     companion object {
         const val DATABASE_NAME = "sonata_db"
