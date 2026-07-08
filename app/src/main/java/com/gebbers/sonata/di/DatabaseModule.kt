@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.gebbers.sonata.data.local.ExcludedFolderDao
 import com.gebbers.sonata.data.local.PlaylistDao
+import com.gebbers.sonata.data.local.ScannedFolderDao
 import com.gebbers.sonata.data.local.SongDao
 import com.gebbers.sonata.data.local.SonataDatabase
 import dagger.Module
@@ -43,5 +44,11 @@ object DatabaseModule {
     @Singleton
     fun provideExcludedFolderDao(database: SonataDatabase): ExcludedFolderDao {
         return database.excludedFolderDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideScannedFolderDao(database: SonataDatabase): ScannedFolderDao {
+        return database.scannedFolderDao()
     }
 }
