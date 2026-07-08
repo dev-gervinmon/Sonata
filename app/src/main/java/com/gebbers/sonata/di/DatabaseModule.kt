@@ -2,6 +2,7 @@ package com.gebbers.sonata.di
 
 import android.content.Context
 import androidx.room.Room
+import com.gebbers.sonata.data.local.ExcludedFolderDao
 import com.gebbers.sonata.data.local.PlaylistDao
 import com.gebbers.sonata.data.local.SongDao
 import com.gebbers.sonata.data.local.SonataDatabase
@@ -36,5 +37,11 @@ object DatabaseModule {
     @Singleton
     fun providePlaylistDao(database: SonataDatabase): PlaylistDao {
         return database.playlistDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideExcludedFolderDao(database: SonataDatabase): ExcludedFolderDao {
+        return database.excludedFolderDao()
     }
 }
