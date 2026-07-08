@@ -37,6 +37,8 @@ interface MusicRepository {
 
     suspend fun updateSongTags(songId: Long, newTitle: String, newArtist: String, newAlbum: String): Boolean
 
+    suspend fun getLyrics(song: Song): String?
+
     fun getExcludedFolders(): Flow<List<String>>
     suspend fun excludeFolder(path: String)
     suspend fun includeFolder(path: String)
