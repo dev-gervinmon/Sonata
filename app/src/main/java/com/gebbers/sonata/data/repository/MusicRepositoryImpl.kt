@@ -1,5 +1,6 @@
 package com.gebbers.sonata.data.repository
 
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.provider.MediaStore
