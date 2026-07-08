@@ -41,6 +41,10 @@ interface MusicRepository {
     suspend fun excludeFolder(path: String)
     suspend fun includeFolder(path: String)
 
+    fun getScannedFolders(): Flow<List<com.gebbers.sonata.data.local.ScannedFolderEntity>>
+    suspend fun addScannedFolder(path: String, name: String)
+    suspend fun removeScannedFolder(path: String)
+
     fun searchSongs(query: String): Flow<List<Song>>
     suspend fun refreshLibrary()
 }
