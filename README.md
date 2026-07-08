@@ -22,7 +22,9 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Room Database**: Persistent storage for fast library access.
 - **Instant Search**: Reactive search across titles, artists, and albums.
 - **Artists & Albums Views**: Dedicated groupings for better structured library browsing.
+- **Genre & Year Views**: Explore your collection by musical style or release era.
 - **Folder-based Browsing**: Navigate your music by its actual directory structure.
+- **Folder Exclusion**: Long-press any folder to hide it from your library (e.g., ringtones, voice notes).
 - **Custom Playlists**: Create and manage your own song collections.
 - **Smart Playlists**: Automatically generated lists for "Recently Added," "Most Played," and "Recently Played."
 - **Favorites System**: Quick "Heart" toggle to save and access your top tracks instantly.
@@ -64,6 +66,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Smart Playlists.
 - [x] Favorites System.
 - [x] Artist & Album Views.
+- [x] Genre & Year Views.
+- [x] Folder Exclusion logic.
 - [x] Homescreen Widgets.
 - [x] Tag Editor.
 - [x] Dynamic UI Polish.
