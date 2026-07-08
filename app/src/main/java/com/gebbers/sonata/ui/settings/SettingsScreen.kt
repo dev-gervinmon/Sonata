@@ -81,9 +81,11 @@ fun SettingsScreen(
                     onClick = { /* Trigger rescan */ }
                 )
 
-                if (viewModel.excludedFolders.collectAsState().value.isNotEmpty()) {
+                val excludedFolders by viewModel.excludedFolders.collectAsState()
+
+                if (excludedFolders.isNotEmpty()) {
                     SettingsHeader("Excluded Folders")
-                    viewModel.excludedFolders.collectAsState().value.forEach { path ->
+                    excludedFolders.forEach { path ->
                         ListItem(
                             headlineContent = { Text(path.substringAfterLast('/')) },
                             supportingContent = { Text(path) },
