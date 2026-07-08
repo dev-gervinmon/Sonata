@@ -24,6 +24,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Artists & Albums Views**: Dedicated groupings for better structured library browsing.
 - **Genre & Year Views**: Explore your collection by musical style or release era.
 - **Folder-based Browsing**: Navigate your music by its actual directory structure.
+- **Custom Library Locations**: Choose specific folders to scan and organize your music exactly where you want it.
 - **Folder Exclusion**: Long-press any folder to hide it from your library (e.g., ringtones, voice notes).
 - **Custom Playlists**: Create and manage your own song collections.
 - **Smart Playlists**: Automatically generated lists for "Recently Added," "Most Played," and "Recently Played."
@@ -70,6 +71,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Folder Exclusion logic.
 - [x] Homescreen Widgets.
 - [x] Tag Editor.
+- [x] Custom Library Locations.
 - [x] Dynamic UI Polish.
 - [x] Android Auto support.
 - [x] Gapless Playback fine-tuning.
