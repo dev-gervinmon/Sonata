@@ -80,6 +80,22 @@ fun SettingsScreen(
                     icon = Icons.Default.Refresh,
                     onClick = { /* Trigger rescan */ }
                 )
+
+                if (viewModel.excludedFolders.collectAsState().value.isNotEmpty()) {
+                    SettingsHeader("Excluded Folders")
+                    viewModel.excludedFolders.collectAsState().value.forEach { path ->
+                        ListItem(
+                            headlineContent = { Text(path.substringAfterLast('/')) },
+                            supportingContent = { Text(path) },
+                            leadingContent = { Icon(Icons.Default.FolderOff, contentDescription = null) },
+                            trailingContent = {
+                                IconButton(onClick = { viewModel.includeFolder(path) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Remove")
+                                }
+                            }
+                        )
+                    }
+                }
             }
 
             item {
