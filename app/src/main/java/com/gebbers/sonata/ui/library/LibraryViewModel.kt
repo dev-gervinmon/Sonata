@@ -101,6 +101,17 @@ class LibraryViewModel @Inject constructor(
         observeGenres()
         observeYears()
         observeExcludedFolders()
+        observeCurrentSongForLyrics()
+    }
+
+    private fun observeCurrentSongForLyrics() {
+        viewModelScope.launch {
+            musicController.currentSong.collect { song ->
+                if (song != null && song.lyrics == null) {
+                    musicRepository.getLyrics(song)
+                }
+            }
+        }
     }
 
     private fun observeFolders() {
