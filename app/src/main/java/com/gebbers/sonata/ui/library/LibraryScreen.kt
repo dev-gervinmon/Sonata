@@ -2,7 +2,6 @@ package com.gebbers.sonata.ui.library
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -258,12 +257,13 @@ fun LibraryScreen(
                                     onYearClick = { viewModel.setBrowsingMode(BrowsingMode.YearDetail(it)) }
                                 )
                             }
-                            mode is BrowsingMode.Folders && searchQuery.isEmpty() -> {
-                                FolderList(
-                                    folders = folders,
-                                    onFolderClick = { viewModel.setBrowsingMode(BrowsingMode.FolderDetail(it)) }
-                                )
-                            }
+                        mode is BrowsingMode.Folders && searchQuery.isEmpty() -> {
+                            FolderList(
+                                folders = folders,
+                                onFolderClick = { viewModel.setBrowsingMode(BrowsingMode.FolderDetail(it)) },
+                                onExcludeFolder = { viewModel.excludeFolder(it) }
+                            )
+                        }
                             mode is BrowsingMode.Playlists && searchQuery.isEmpty() -> {
                                 PlaylistList(
                                     playlists = playlists,
