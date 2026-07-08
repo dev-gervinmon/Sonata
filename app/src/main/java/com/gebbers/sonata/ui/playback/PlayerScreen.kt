@@ -51,6 +51,7 @@ fun PlayerScreen(
 
     var showSleepTimerDialog by remember { mutableStateOf(false) }
     var showPlaybackSettingsDialog by remember { mutableStateOf(false) }
+    var showLyrics by remember { mutableStateOf(false) }
 
     val backgroundColor = MaterialTheme.colorScheme.surface
     val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
@@ -92,6 +93,13 @@ fun PlayerScreen(
                 )
 
                 Row {
+                    IconButton(onClick = { showLyrics = !showLyrics }) {
+                        Icon(
+                            imageVector = Icons.Default.Lyrics,
+                            contentDescription = "Lyrics",
+                            tint = if (showLyrics) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     IconButton(onClick = { showSleepTimerDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Timer,
@@ -110,21 +118,45 @@ fun PlayerScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Album Art with Shadow/Elevation
-            Card(
+            // Main Content Area (Art or Lyrics)
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .aspectRatio(1f),
-                shape = MaterialTheme.shapes.extraLarge,
-                elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+                    .fillMaxWidth()
+                    .weight(5f),
+                contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = song.albumArtUri,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.MusicNote)
-                )
+                this@Column.AnimatedVisibility(
+                    visible = !showLyrics,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut()
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .aspectRatio(1f),
+                        shape = MaterialTheme.shapes.extraLarge,
+                        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+                    ) {
+                        AsyncImage(
+                            model = song.albumArtUri,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.MusicNote)
+                        )
+                    }
+                }
+
+                this@Column.AnimatedVisibility(
+                    visible = showLyrics,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    LyricsView(
+                        lyrics = song.lyrics,
+                        currentPosition = currentPosition
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
