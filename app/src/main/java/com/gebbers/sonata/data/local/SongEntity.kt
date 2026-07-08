@@ -17,5 +17,7 @@ data class SongEntity(
     val isFavorite: Boolean = false,
     val playCount: Int = 0,
     val lastPlayedAt: Long = 0,
-    val lyrics: String? = null
+    val lyrics: String? = null,
+    val genre: String? = null,
+    val year: Int? = null
 )
