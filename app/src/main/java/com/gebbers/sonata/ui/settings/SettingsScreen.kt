@@ -1,5 +1,7 @@
 package com.gebbers.sonata.ui.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -82,6 +84,41 @@ fun SettingsScreen(
                 )
 
                 val excludedFolders by viewModel.excludedFolders.collectAsState()
+                val scannedFolders by viewModel.scannedFolders.collectAsState()
+
+                val folderPickerLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.OpenDocumentTree()
+                ) { uri ->
+                    uri?.let {
+                        // Extract path from URI - simplistic for now
+                        // In production, we'd use SAF properly or store URIs
+                        val path = it.path ?: ""
+                        viewModel.addScannedFolder(path, it.lastPathSegment ?: "Folder")
+                    }
+                }
+
+                SettingsClickItem(
+                    title = "Add Music Folder",
+                    description = "Only scan specific directories",
+                    icon = Icons.Default.CreateNewFolder,
+                    onClick = { folderPickerLauncher.launch(null) }
+                )
+
+                if (scannedFolders.isNotEmpty()) {
+                    SettingsHeader("Scanned Folders")
+                    scannedFolders.forEach { folder ->
+                        ListItem(
+                            headlineContent = { Text(folder.displayName) },
+                            supportingContent = { Text(folder.path) },
+                            leadingContent = { Icon(Icons.Default.Folder, contentDescription = null) },
+                            trailingContent = {
+                                IconButton(onClick = { viewModel.removeScannedFolder(folder.path) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Remove")
+                                }
+                            }
+                        )
+                    }
+                }
 
                 if (excludedFolders.isNotEmpty()) {
                     SettingsHeader("Excluded Folders")
