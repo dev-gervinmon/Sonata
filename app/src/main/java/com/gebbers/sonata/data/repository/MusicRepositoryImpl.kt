@@ -29,6 +29,7 @@ class MusicRepositoryImpl @Inject constructor(
     private val songDao: SongDao,
     private val playlistDao: PlaylistDao,
     private val excludedFolderDao: ExcludedFolderDao,
+    private val scannedFolderDao: ScannedFolderDao,
     private val musicScanner: MusicScanner
 ) : MusicRepository {
 
@@ -225,6 +226,20 @@ class MusicRepositoryImpl @Inject constructor(
         refreshLibrary()
     }
 
+    override fun getScannedFolders(): Flow<List<ScannedFolderEntity>> {
+        return scannedFolderDao.getAllScannedFolders()
+    }
+
+    override suspend fun addScannedFolder(path: String, name: String) {
+        scannedFolderDao.insertScannedFolder(ScannedFolderEntity(path, name))
+        refreshLibrary()
+    }
+
+    override suspend fun removeScannedFolder(path: String) {
+        scannedFolderDao.deleteScannedFolder(ScannedFolderEntity(path, ""))
+        refreshLibrary()
+    }
+
     override fun searchSongs(query: String): Flow<List<Song>> {
         return songDao.searchSongs(query).map { entities ->
             entities.map { it.toSong() }
@@ -233,7 +248,8 @@ class MusicRepositoryImpl @Inject constructor(
 
     override suspend fun refreshLibrary() = withContext(Dispatchers.IO) {
         val excludedFolders = excludedFolderDao.getAllExcludedFolders().first().map { it.path }
-        val scannedSongs = musicScanner.scanInternalStorage(excludedFolders)
+        val scannedFolders = scannedFolderDao.getAllScannedFolders().first().map { it.path }
+        val scannedSongs = musicScanner.scanInternalStorage(excludedFolders, scannedFolders)
         if (scannedSongs.isNotEmpty()) {
             songDao.insertSongs(scannedSongs.map { it.toEntity() })
             songDao.deleteRemovedSongs(scannedSongs.map { it.mediaStoreId })
