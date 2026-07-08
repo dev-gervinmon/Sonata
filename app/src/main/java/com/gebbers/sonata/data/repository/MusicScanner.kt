@@ -14,7 +14,10 @@ import javax.inject.Singleton
 class MusicScanner @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    fun scanInternalStorage(excludedFolders: List<String> = emptyList()): List<Song> {
+    fun scanInternalStorage(
+        excludedFolders: List<String> = emptyList(),
+        scannedFolders: List<String> = emptyList()
+    ): List<Song> {
         val songs = mutableListOf<Song>()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
@@ -53,6 +56,9 @@ class MusicScanner @Inject constructor(
                 
                 // Folder Exclusion Check
                 if (excludedFolders.any { data.startsWith(it) }) continue
+
+                // Scanned Folders (Whitelist) Check
+                if (scannedFolders.isNotEmpty() && !scannedFolders.any { data.startsWith(it) }) continue
 
                 val id = cursor.getLong(idColumn)
                 val title = cursor.getString(titleColumn) ?: "Unknown"
