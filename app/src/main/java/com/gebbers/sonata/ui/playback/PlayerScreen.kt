@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -154,7 +153,8 @@ fun PlayerScreen(
                 ) {
                     LyricsView(
                         lyrics = song.lyrics,
-                        currentPosition = currentPosition
+                        currentPosition = currentPosition,
+                        albumArtUri = song.albumArtUri
                     )
                 }
             }
