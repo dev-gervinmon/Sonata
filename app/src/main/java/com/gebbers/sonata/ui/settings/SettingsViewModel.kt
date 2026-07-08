@@ -29,6 +29,9 @@ class SettingsViewModel @Inject constructor(
     val excludedFolders = musicRepository.getExcludedFolders()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val scannedFolders = musicRepository.getScannedFolders()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun setDynamicTheming(enabled: Boolean) {
         viewModelScope.launch {
             preferenceManager.setDynamicTheming(enabled)
@@ -50,6 +53,18 @@ class SettingsViewModel @Inject constructor(
     fun includeFolder(path: String) {
         viewModelScope.launch {
             musicRepository.includeFolder(path)
+        }
+    }
+
+    fun addScannedFolder(path: String, name: String) {
+        viewModelScope.launch {
+            musicRepository.addScannedFolder(path, name)
+        }
+    }
+
+    fun removeScannedFolder(path: String) {
+        viewModelScope.launch {
+            musicRepository.removeScannedFolder(path)
         }
     }
 }
