@@ -16,6 +16,8 @@ sealed interface BrowsingMode {
     object AllSongs : BrowsingMode
     object Artists : BrowsingMode
     object Albums : BrowsingMode
+    object Genres : BrowsingMode
+    object Years : BrowsingMode
     object Folders : BrowsingMode
     object Playlists : BrowsingMode
     object Favorites : BrowsingMode
@@ -24,6 +26,8 @@ sealed interface BrowsingMode {
     object MostPlayed : BrowsingMode
     data class ArtistDetail(val artist: com.gebbers.sonata.domain.model.Artist) : BrowsingMode
     data class AlbumDetail(val album: com.gebbers.sonata.domain.model.Album) : BrowsingMode
+    data class GenreDetail(val genre: String) : BrowsingMode
+    data class YearDetail(val year: Int) : BrowsingMode
     data class FolderDetail(val folder: com.gebbers.sonata.domain.model.Folder) : BrowsingMode
     data class PlaylistDetail(val playlist: com.gebbers.sonata.domain.model.Playlist) : BrowsingMode
 }
@@ -78,6 +82,15 @@ class LibraryViewModel @Inject constructor(
     private val _playlists = MutableStateFlow<List<com.gebbers.sonata.domain.model.Playlist>>(emptyList())
     val playlists = _playlists.asStateFlow()
 
+    private val _genres = MutableStateFlow<List<String>>(emptyList())
+    val genres = _genres.asStateFlow()
+
+    private val _years = MutableStateFlow<List<Int>>(emptyList())
+    val years = _years.asStateFlow()
+
+    private val _excludedFolders = MutableStateFlow<List<String>>(emptyList())
+    val excludedFolders = _excludedFolders.asStateFlow()
+
     init {
         musicController.connect()
         observeSongs()
@@ -85,6 +98,9 @@ class LibraryViewModel @Inject constructor(
         observeArtists()
         observeAlbums()
         observePlaylists()
+        observeGenres()
+        observeYears()
+        observeExcludedFolders()
     }
 
     private fun observeFolders() {
@@ -119,6 +135,30 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    private fun observeGenres() {
+        viewModelScope.launch {
+            musicRepository.getAllGenres().collect {
+                _genres.value = it
+            }
+        }
+    }
+
+    private fun observeYears() {
+        viewModelScope.launch {
+            musicRepository.getAllYears().collect {
+                _years.value = it
+            }
+        }
+    }
+
+    private fun observeExcludedFolders() {
+        viewModelScope.launch {
+            musicRepository.getExcludedFolders().collect {
+                _excludedFolders.value = it
+            }
+        }
+    }
+
     private fun observeSongs() {
         viewModelScope.launch {
             combine(_searchQuery.debounce(300L), _browsingMode) { query, mode ->
@@ -131,6 +171,8 @@ class LibraryViewModel @Inject constructor(
                         is BrowsingMode.AllSongs -> musicRepository.getAllSongs()
                         is BrowsingMode.Artists -> musicRepository.getAllSongs()
                         is BrowsingMode.Albums -> musicRepository.getAllSongs()
+                        is BrowsingMode.Genres -> musicRepository.getAllSongs()
+                        is BrowsingMode.Years -> musicRepository.getAllSongs()
                         is BrowsingMode.Folders -> musicRepository.getAllSongs()
                         is BrowsingMode.Playlists -> musicRepository.getAllSongs()
                         is BrowsingMode.Favorites -> musicRepository.getFavoriteSongs()
@@ -139,6 +181,8 @@ class LibraryViewModel @Inject constructor(
                         is BrowsingMode.MostPlayed -> musicRepository.getMostPlayed()
                         is BrowsingMode.ArtistDetail -> musicRepository.getSongsByArtist(mode.artist.name)
                         is BrowsingMode.AlbumDetail -> musicRepository.getSongsByAlbum(mode.album.id)
+                        is BrowsingMode.GenreDetail -> musicRepository.getSongsByGenre(mode.genre)
+                        is BrowsingMode.YearDetail -> musicRepository.getSongsByYear(mode.year)
                         is BrowsingMode.FolderDetail -> musicRepository.getSongsByFolder(mode.folder.path)
                         is BrowsingMode.PlaylistDetail -> musicRepository.getSongsInPlaylist(mode.playlist.id)
                     }
@@ -196,6 +240,14 @@ class LibraryViewModel @Inject constructor(
                 _browsingMode.value = BrowsingMode.Albums
                 true
             }
+            is BrowsingMode.GenreDetail -> {
+                _browsingMode.value = BrowsingMode.Genres
+                true
+            }
+            is BrowsingMode.YearDetail -> {
+                _browsingMode.value = BrowsingMode.Years
+                true
+            }
             is BrowsingMode.FolderDetail -> {
                 _browsingMode.value = BrowsingMode.Folders
                 true
@@ -205,12 +257,24 @@ class LibraryViewModel @Inject constructor(
                 true
             }
             is BrowsingMode.Artists, is BrowsingMode.Albums, is BrowsingMode.Folders, 
-            is BrowsingMode.Playlists, is BrowsingMode.Favorites, 
+            is BrowsingMode.Playlists, is BrowsingMode.Favorites, is BrowsingMode.Genres, is BrowsingMode.Years,
             is BrowsingMode.RecentlyAdded, is BrowsingMode.RecentlyPlayed, is BrowsingMode.MostPlayed -> {
                 _browsingMode.value = BrowsingMode.AllSongs
                 true
             }
             else -> false
+        }
+    }
+
+    fun excludeFolder(path: String) {
+        viewModelScope.launch {
+            musicRepository.excludeFolder(path)
+        }
+    }
+
+    fun includeFolder(path: String) {
+        viewModelScope.launch {
+            musicRepository.includeFolder(path)
         }
     }
 
