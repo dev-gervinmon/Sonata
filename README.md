@@ -38,6 +38,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Playback Speed & Pitch**: Adjust playback speed (0.5x - 2.0x) and pitch independently.
 - **Mini Player**: Persistent control bar for quick access while browsing the library.
 - **Full Player Screen**: Immersive Material3 bottom sheet with rich controls.
+- **Lyrics Support**: Integrated display for both embedded and external synced (.lrc) lyrics.
 - **Dynamic Theming**: Automatically updates the app's accent colors based on the currently playing album art.
 - **Android Auto Support**: Full integration with the Android Auto media ecosystem for a safe and professional driving experience.
 - **Settings Page**: Customizable experience including theme toggles and library management.
@@ -68,7 +69,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - [x] Dynamic UI Polish.
 - [x] Android Auto support.
 - [x] Gapless Playback fine-tuning.
-- [ ] Lyrics extraction and display.
+- [x] Lyrics extraction and display.
 
 ---
 *Developed as a high-performance local music solution for Android.*
