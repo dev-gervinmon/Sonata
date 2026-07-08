@@ -23,6 +23,12 @@ interface SongDao {
     @Query("UPDATE songs SET playCount = playCount + 1, lastPlayedAt = :timestamp WHERE mediaStoreId = :id")
     suspend fun incrementPlayCount(id: Long, timestamp: Long)
 
+    @Query("UPDATE songs SET lyrics = :lyrics WHERE mediaStoreId = :id")
+    suspend fun updateLyrics(id: Long, lyrics: String?)
+
+    @Query("UPDATE songs SET genre = :genre WHERE mediaStoreId = :id")
+    suspend fun updateGenre(id: Long, genre: String?)
+
     @Query("SELECT * FROM songs ORDER BY dateAdded DESC LIMIT 50")
     fun getRecentlyAdded(): Flow<List<SongEntity>>
 
