@@ -14,7 +14,7 @@ import javax.inject.Singleton
 class MusicScanner @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    fun scanInternalStorage(): List<Song> {
+    fun scanInternalStorage(excludedFolders: List<String> = emptyList()): List<Song> {
         val songs = mutableListOf<Song>()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
@@ -25,7 +25,8 @@ class MusicScanner @Inject constructor(
             MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.DATA,
-            MediaStore.Audio.Media.ALBUM_ID
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.YEAR
         )
 
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
@@ -45,15 +46,22 @@ class MusicScanner @Inject constructor(
             val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
             val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
 
             while (cursor.moveToNext()) {
+                val data = cursor.getString(dataColumn)
+                
+                // Folder Exclusion Check
+                if (excludedFolders.any { data.startsWith(it) }) continue
+
                 val id = cursor.getLong(idColumn)
                 val title = cursor.getString(titleColumn) ?: "Unknown"
                 val artist = cursor.getString(artistColumn) ?: "Unknown"
                 val album = cursor.getString(albumColumn) ?: "Unknown"
                 val duration = cursor.getLong(durationColumn)
-                val data = cursor.getString(dataColumn)
                 val albumId = cursor.getLong(albumIdColumn)
+                val year = cursor.getInt(yearColumn)
+                
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     id
@@ -70,12 +78,26 @@ class MusicScanner @Inject constructor(
                         uri = contentUri,
                         albumId = albumId,
                         albumArtUri = "", // Filled by mapper
-                        lyrics = extractLyrics(data)
+                        lyrics = extractLyrics(data),
+                        genre = extractGenre(data),
+                        year = if (year > 0) year else null
                     )
                 )
             }
         }
         return songs
+    }
+
+    private fun extractGenre(path: String): String? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(path)
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
+        } catch (e: Exception) {
+            null
+        } finally {
+            try { retriever.release() } catch (e: Exception) {}
+        }
     }
 
     private fun extractLyrics(path: String): String? {
@@ -85,16 +107,11 @@ class MusicScanner @Inject constructor(
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(path)
-            // METADATA_KEY_LYRICS is 36 in API 36+
             retriever.extractMetadata(36)
         } catch (e: Exception) {
             null
         } finally {
-            try {
-                retriever.release()
-            } catch (e: Exception) {
-                // Ignore
-            }
+            try { retriever.release() } catch (e: Exception) {}
         }
     }
 
