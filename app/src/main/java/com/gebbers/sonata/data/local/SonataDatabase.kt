@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase
         PlaylistEntity::class,
         PlaylistSongCrossRef::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class SonataDatabase : RoomDatabase() {
