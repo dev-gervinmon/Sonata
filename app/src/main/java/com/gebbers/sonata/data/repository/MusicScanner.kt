@@ -84,14 +84,22 @@ class MusicScanner @Inject constructor(
                         uri = contentUri,
                         albumId = albumId,
                         albumArtUri = "", // Filled by mapper
-                        lyrics = extractLyrics(data),
-                        genre = extractGenre(data),
+                        lyrics = null, // Extracted on demand
+                        genre = null, // Extracted on demand
                         year = if (year > 0) year else null
                     )
                 )
             }
         }
         return songs
+    }
+
+    fun getLyrics(path: String): String? {
+        return extractLyrics(path)
+    }
+
+    fun getGenre(path: String): String? {
+        return extractGenre(path)
     }
 
     private fun extractGenre(path: String): String? {
