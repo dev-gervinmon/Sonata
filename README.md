@@ -29,8 +29,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Custom Playlists**: Create and manage your own song collections.
 - **Smart Playlists**: Automatically generated lists for "Recently Added," "Most Played," and "Recently Played."
 - **Favorites System**: Quick "Heart" toggle to save and access your top tracks instantly.
-- **Tag Editor**: Edit song metadata (Title, Artist, Album) directly within the app.
-- **Bulk Metadata Cleaner**: Automatically remove underscores and common YouTube keywords (e.g., "Official Video", "Lyrics") from your entire library.
+- **Tag Editor**: Edit song metadata (Title, Artist, Album) and automatically rename files on disk to match.
 
 ### 🎛️ Audio Effects
 - **5-Band Equalizer**: Direct hardware-level integration with band sliders.
