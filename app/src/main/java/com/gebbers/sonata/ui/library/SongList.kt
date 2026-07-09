@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,6 +26,7 @@ fun SongList(
     songs: List<Song>,
     onSongClick: (Song) -> Unit,
     onMoreClick: (Song) -> Unit = {},
+    showTrackNumbers: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -43,7 +43,8 @@ fun SongList(
                 SongItem(
                     song = song,
                     onClick = { onSongClick(song) },
-                    onMoreClick = { onMoreClick(song) }
+                    onMoreClick = { onMoreClick(song) },
+                    showTrackNumber = showTrackNumbers
                 )
             }
         }
@@ -55,17 +56,28 @@ fun SongItem(
     song: Song,
     onClick: () -> Unit,
     onMoreClick: () -> Unit,
+    showTrackNumber: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     ListItem(
         headlineContent = {
-            Text(
-                text = song.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (showTrackNumber && song.trackNumber != null) {
+                    Text(
+                        text = "${song.trackNumber}.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(end = 8.dp),
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                Text(
+                    text = song.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         },
         supportingContent = {
             Text(
