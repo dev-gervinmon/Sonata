@@ -74,8 +74,15 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsHeader("Library")
+                SettingsHeader("Library Tools")
                 
+                SettingsClickItem(
+                    title = "Clean Metadata",
+                    description = "Remove underscores and common keywords (Official Video, Lyrics, etc.) from all tracks",
+                    icon = Icons.Default.AutoFixHigh,
+                    onClick = { viewModel.bulkCleanTags() }
+                )
+
                 SettingsClickItem(
                     title = "Rescan Library",
                     description = "Search device for new music files",
