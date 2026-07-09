@@ -16,8 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.gebbers.sonata.ui.MainScreen
 import com.gebbers.sonata.ui.equalizer.EqualizerViewModel
-import com.gebbers.sonata.ui.library.LibraryScreen
 import com.gebbers.sonata.ui.library.LibraryViewModel
 import com.gebbers.sonata.ui.settings.SettingsViewModel
 import com.gebbers.sonata.ui.theme.SonataTheme
@@ -56,8 +56,8 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LibraryScreen(
-                        viewModel = viewModel,
+                    MainScreen(
+                        libraryViewModel = viewModel,
                         equalizerViewModel = equalizerViewModel,
                         settingsViewModel = settingsViewModel
                     )
