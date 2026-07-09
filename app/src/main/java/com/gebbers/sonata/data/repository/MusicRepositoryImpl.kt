@@ -56,7 +56,9 @@ class MusicRepositoryImpl @Inject constructor(
 
     override fun getSongsByAlbum(albumId: Long): Flow<List<Song>> {
         return songDao.getAllSongs().map { entities ->
-            entities.filter { it.albumId == albumId }.map { it.toSong() }
+            entities.filter { it.albumId == albumId }
+                .sortedWith(compareBy({ it.discNumber ?: 0 }, { it.trackNumber ?: 0 }))
+                .map { it.toSong() }
         }
     }
 
