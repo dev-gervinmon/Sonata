@@ -1,3 +1,5 @@
+package com.gebbers.sonata.ui.library
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
