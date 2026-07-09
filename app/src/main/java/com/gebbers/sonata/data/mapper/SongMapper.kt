@@ -28,7 +28,9 @@ fun SongEntity.toSong(): Song {
         lastPlayedAt = lastPlayedAt,
         lyrics = lyrics,
         genre = genre,
-        year = year
+        year = year,
+        trackNumber = trackNumber,
+        discNumber = discNumber
     )
 }
 
@@ -48,7 +50,9 @@ fun Song.toEntity(dateAdded: Long = System.currentTimeMillis()): SongEntity {
         lastPlayedAt = lastPlayedAt,
         lyrics = lyrics,
         genre = genre,
-        year = year
+        year = year,
+        trackNumber = trackNumber,
+        discNumber = discNumber
     )
 }
 
@@ -64,6 +68,8 @@ fun Song.toMediaItem(): MediaItem {
                 .setArtworkUri(Uri.parse(albumArtUri))
                 .setIsBrowsable(false)
                 .setIsPlayable(true)
+                .setTrackNumber(trackNumber)
+                .setDiscNumber(discNumber)
                 .build()
         )
         .build()
