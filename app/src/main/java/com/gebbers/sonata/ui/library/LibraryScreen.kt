@@ -1,15 +1,13 @@
 package com.gebbers.sonata.ui.library
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.gebbers.sonata.domain.model.Song
@@ -40,9 +37,11 @@ fun LibraryScreen(
     val years by viewModel.years.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val artworkSearchResults by viewModel.artworkSearchResults.collectAsState()
 
     var selectedSongForMenu by remember { mutableStateOf<Song?>(null) }
     var songForTagEditing by remember { mutableStateOf<Song?>(null) }
+    var songForArtworkSelection by remember { mutableStateOf<Song?>(null) }
     var isAddingToPlaylist by remember { mutableStateOf(false) }
 
     val playlistSheetState = rememberModalBottomSheetState()
@@ -227,8 +226,7 @@ fun LibraryScreen(
             onDismissRequest = { 
                 selectedSongForMenu = null
                 isAddingToPlaylist = false
-            },
-            sheetState = playlistSheetState
+            }
         ) {
             Column(
                 modifier = Modifier
@@ -261,8 +259,12 @@ fun LibraryScreen(
                             AsyncImage(
                                 model = selectedSongForMenu!!.albumArtUri,
                                 contentDescription = null,
-                                modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.small),
-                                contentScale = ContentScale.Crop
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(MaterialTheme.shapes.small)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentScale = ContentScale.Crop,
+                                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.MusicNote)
                             )
                         }
                     )
@@ -280,9 +282,30 @@ fun LibraryScreen(
                             selectedSongForMenu = null
                         }
                     )
+                    ListItem(
+                        headlineContent = { Text("Change artwork") },
+                        leadingContent = { Icon(Icons.Default.Image, contentDescription = null) },
+                        modifier = Modifier.clickable { 
+                            songForArtworkSelection = selectedSongForMenu
+                            selectedSongForMenu = null
+                        }
+                    )
                 }
             }
         }
+    }
+
+    if (songForArtworkSelection != null) {
+        ArtworkPickerDialog(
+            song = songForArtworkSelection!!,
+            searchResults = artworkSearchResults,
+            onSearch = { viewModel.searchArtwork(it) },
+            onSelect = { uri ->
+                viewModel.setCustomArtwork(songForArtworkSelection!!.mediaStoreId, uri)
+                songForArtworkSelection = null
+            },
+            onDismiss = { songForArtworkSelection = null }
+        )
     }
 
     if (songForTagEditing != null) {
