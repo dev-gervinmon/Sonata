@@ -19,5 +19,7 @@ data class SongEntity(
     val lastPlayedAt: Long = 0,
     val lyrics: String? = null,
     val genre: String? = null,
-    val year: Int? = null
+    val year: Int? = null,
+    val trackNumber: Int? = null,
+    val discNumber: Int? = null
 )
