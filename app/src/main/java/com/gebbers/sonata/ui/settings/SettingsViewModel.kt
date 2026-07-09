@@ -67,4 +67,10 @@ class SettingsViewModel @Inject constructor(
             musicRepository.removeScannedFolder(path)
         }
     }
+
+    fun bulkCleanTags() {
+        viewModelScope.launch {
+            musicRepository.bulkCleanTags()
+        }
+    }
 }
