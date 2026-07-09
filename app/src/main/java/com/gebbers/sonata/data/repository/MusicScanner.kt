@@ -29,7 +29,9 @@ class MusicScanner @Inject constructor(
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.DATA,
             MediaStore.Audio.Media.ALBUM_ID,
-            MediaStore.Audio.Media.YEAR
+            MediaStore.Audio.Media.YEAR,
+            MediaStore.Audio.Media.TRACK,
+            "disc_number" // MediaStore.Audio.Media.DISC_NUMBER
         )
 
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
@@ -42,14 +44,16 @@ class MusicScanner @Inject constructor(
             null,
             sortOrder
         )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-            val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-            val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+            val idColumn = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
+            val titleColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
+            val artistColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+            val albumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+            val durationColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+            val dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
+            val albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+            val yearColumn = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+            val trackColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
+            val discColumn = cursor.getColumnIndex("disc_number")
 
             while (cursor.moveToNext()) {
                 val data = if (dataColumn != -1) cursor.getString(dataColumn) else null
@@ -68,6 +72,11 @@ class MusicScanner @Inject constructor(
                 val duration = if (durationColumn != -1) cursor.getLong(durationColumn) else 0L
                 val albumId = if (albumIdColumn != -1) cursor.getLong(albumIdColumn) else 0L
                 val year = if (yearColumn != -1) cursor.getInt(yearColumn) else 0
+                val trackRaw = if (trackColumn != -1) cursor.getInt(trackColumn) else 0
+                val discRaw = if (discColumn != -1) cursor.getInt(discColumn) else 0
+
+                val discNumber = if (discRaw > 0) discRaw else trackRaw / 1000
+                val trackNumber = if (discRaw > 0) trackRaw else trackRaw % 1000
                 
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -87,7 +96,9 @@ class MusicScanner @Inject constructor(
                         albumArtUri = "", // Filled by mapper
                         lyrics = null, // Extracted on demand
                         genre = null, // Extracted on demand
-                        year = if (year > 0) year else null
+                        year = if (year > 0) year else null,
+                        trackNumber = if (trackNumber > 0) trackNumber else null,
+                        discNumber = if (discNumber > 0) discNumber else null
                     )
                 )
             }
