@@ -210,6 +210,40 @@ class MusicRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun bulkCleanTags(): Int = withContext(Dispatchers.IO) {
+        val songs = songDao.getAllSongs().first()
+        var updatedCount = 0
+
+        songs.forEach { entity ->
+            val cleanTitle = cleanText(entity.title)
+            val cleanArtist = cleanText(entity.artist)
+            val cleanAlbum = cleanText(entity.album)
+
+            if (cleanTitle != entity.title || cleanArtist != entity.artist || cleanAlbum != entity.album) {
+                val success = updateSongTags(entity.mediaStoreId, cleanTitle, cleanArtist, cleanAlbum)
+                if (success) updatedCount++
+            }
+        }
+        updatedCount
+    }
+
+    private fun cleanText(text: String): String {
+        var clean = text.replace('_', ' ')
+        
+        val keywordsToRemove = listOf(
+            "Official Music Video", "Official Video", "Music Video", "Official Audio",
+            "Lyrics", "Lyric Video", "(Lyrics)", "[Lyrics]", "(Official Video)", "[Official Video]",
+            "(Music Video)", "[Music Video]", "[4K]", "[HD]", "(HD)", "(HQ)", "[HQ]"
+        )
+
+        keywordsToRemove.forEach { keyword ->
+            clean = clean.replace(keyword, "", ignoreCase = true)
+        }
+
+        // Cleanup multiple spaces and trim
+        return clean.replace(Regex("\\s+"), " ").trim()
+    }
+
     override suspend fun getLyrics(song: Song): String? = withContext(Dispatchers.IO) {
         if (song.lyrics != null) return@withContext song.lyrics
         
