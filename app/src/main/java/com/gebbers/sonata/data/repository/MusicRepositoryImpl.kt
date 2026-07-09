@@ -190,13 +190,25 @@ class MusicRepositoryImpl @Inject constructor(
 
     override suspend fun updateSongTags(songId: Long, newTitle: String, newArtist: String, newAlbum: String): Boolean = withContext(Dispatchers.IO) {
         try {
+            val projection = arrayOf(MediaStore.Audio.Media.DATA)
+            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+            
+            var extension = "mp3"
+            context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val path = cursor.getString(0)
+                    extension = path.substringAfterLast('.', "mp3")
+                }
+            }
+
             val contentValues = ContentValues().apply {
                 put(MediaStore.Audio.Media.TITLE, newTitle)
                 put(MediaStore.Audio.Media.ARTIST, newArtist)
                 put(MediaStore.Audio.Media.ALBUM, newAlbum)
+                // Also rename the physical file on disk
+                put(MediaStore.Audio.Media.DISPLAY_NAME, "$newArtist - $newTitle.$extension")
             }
 
-            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
             val updated = context.contentResolver.update(uri, contentValues, null, null)
             
             if (updated > 0) {
@@ -208,40 +220,6 @@ class MusicRepositoryImpl @Inject constructor(
             e.printStackTrace()
             false
         }
-    }
-
-    override suspend fun bulkCleanTags(): Int = withContext(Dispatchers.IO) {
-        val songs = songDao.getAllSongs().first()
-        var updatedCount = 0
-
-        songs.forEach { entity ->
-            val cleanTitle = cleanText(entity.title)
-            val cleanArtist = cleanText(entity.artist)
-            val cleanAlbum = cleanText(entity.album)
-
-            if (cleanTitle != entity.title || cleanArtist != entity.artist || cleanAlbum != entity.album) {
-                val success = updateSongTags(entity.mediaStoreId, cleanTitle, cleanArtist, cleanAlbum)
-                if (success) updatedCount++
-            }
-        }
-        updatedCount
-    }
-
-    private fun cleanText(text: String): String {
-        var clean = text.replace('_', ' ')
-        
-        val keywordsToRemove = listOf(
-            "Official Music Video", "Official Video", "Music Video", "Official Audio",
-            "Lyrics", "Lyric Video", "(Lyrics)", "[Lyrics]", "(Official Video)", "[Official Video]",
-            "(Music Video)", "[Music Video]", "[4K]", "[HD]", "(HD)", "(HQ)", "[HQ]"
-        )
-
-        keywordsToRemove.forEach { keyword ->
-            clean = clean.replace(keyword, "", ignoreCase = true)
-        }
-
-        // Cleanup multiple spaces and trim
-        return clean.replace(Regex("\\s+"), " ").trim()
     }
 
     override suspend fun getLyrics(song: Song): String? = withContext(Dispatchers.IO) {
