@@ -8,7 +8,7 @@ import com.gebbers.sonata.data.local.SongEntity
 import com.gebbers.sonata.domain.model.Song
 
 fun SongEntity.toSong(): Song {
-    val albumArtUri = ContentUris.withAppendedId(
+    val albumArtUri = customAlbumArtUri ?: ContentUris.withAppendedId(
         Uri.parse("content://media/external/audio/albumart"),
         albumId
     ).toString()
@@ -30,7 +30,8 @@ fun SongEntity.toSong(): Song {
         genre = genre,
         year = year,
         trackNumber = trackNumber,
-        discNumber = discNumber
+        discNumber = discNumber,
+        customAlbumArtUri = customAlbumArtUri
     )
 }
 
@@ -52,7 +53,8 @@ fun Song.toEntity(dateAdded: Long = System.currentTimeMillis()): SongEntity {
         genre = genre,
         year = year,
         trackNumber = trackNumber,
-        discNumber = discNumber
+        discNumber = discNumber,
+        customAlbumArtUri = customAlbumArtUri
     )
 }
 
