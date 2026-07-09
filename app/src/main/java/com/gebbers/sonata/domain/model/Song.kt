@@ -17,5 +17,6 @@ data class Song(
     val genre: String? = null,
     val year: Int? = null,
     val trackNumber: Int? = null,
-    val discNumber: Int? = null
+    val discNumber: Int? = null,
+    val customAlbumArtUri: String? = null
 )
