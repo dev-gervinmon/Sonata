@@ -3,6 +3,7 @@ package com.gebbers.sonata.ui.playback
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -15,6 +16,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -65,7 +67,8 @@ fun MiniPlayer(
                     .size(48.dp)
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                error = rememberVectorPainter(Icons.Default.MusicNote)
             )
 
             Spacer(modifier = Modifier.width(16.dp))
