@@ -36,7 +36,7 @@ sealed interface BrowsingMode {
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val musicRepository: MusicRepository,
-    private val musicController: MusicController
+    val musicController: MusicController
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LibraryUiState>(LibraryUiState.Loading)
@@ -90,6 +90,12 @@ class LibraryViewModel @Inject constructor(
 
     private val _excludedFolders = MutableStateFlow<List<String>>(emptyList())
     val excludedFolders = _excludedFolders.asStateFlow()
+
+    val recentlyPlayed: StateFlow<List<Song>> = musicRepository.getRecentlyPlayed()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val mostPlayed: StateFlow<List<Song>> = musicRepository.getMostPlayed()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         musicController.connect()
