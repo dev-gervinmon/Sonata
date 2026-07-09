@@ -190,7 +190,14 @@ class MusicRepositoryImpl @Inject constructor(
         playlistDao.removeSongFromPlaylist(PlaylistSongCrossRef(playlistId, mediaStoreId))
     }
 
-    override suspend fun updateSongTags(songId: Long, newTitle: String, newArtist: String, newAlbum: String): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun updateSongTags(
+        songId: Long,
+        newTitle: String,
+        newArtist: String,
+        newAlbum: String,
+        newTrackNumber: Int?,
+        newDiscNumber: Int?
+    ): Boolean = withContext(Dispatchers.IO) {
         try {
             val projection = arrayOf(MediaStore.Audio.Media.DATA)
             val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
@@ -207,6 +214,9 @@ class MusicRepositoryImpl @Inject constructor(
                 put(MediaStore.Audio.Media.TITLE, newTitle)
                 put(MediaStore.Audio.Media.ARTIST, newArtist)
                 put(MediaStore.Audio.Media.ALBUM, newAlbum)
+                put(MediaStore.Audio.Media.TRACK, (newDiscNumber ?: 0) * 1000 + (newTrackNumber ?: 0))
+                // Note: disc_number might not be available for update on all versions
+
                 // Also rename the physical file on disk
                 put(MediaStore.Audio.Media.DISPLAY_NAME, "$newArtist - $newTitle.$extension")
             }
