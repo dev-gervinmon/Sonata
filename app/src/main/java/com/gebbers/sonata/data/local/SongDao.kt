@@ -38,7 +38,7 @@ interface SongDao {
     @Query("SELECT * FROM songs WHERE playCount > 0 ORDER BY playCount DESC LIMIT 50")
     fun getMostPlayed(): Flow<List<SongEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSongs(songs: List<SongEntity>)
 
     @Query("DELETE FROM songs WHERE mediaStoreId NOT IN (:ids)")
