@@ -237,6 +237,21 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    private val _artworkSearchResults = MutableStateFlow<List<String>>(emptyList())
+    val artworkSearchResults = _artworkSearchResults.asStateFlow()
+
+    fun searchArtwork(query: String) {
+        viewModelScope.launch {
+            _artworkSearchResults.value = musicRepository.searchOnlineArtwork(query)
+        }
+    }
+
+    fun setCustomArtwork(songId: Long, uri: String) {
+        viewModelScope.launch {
+            musicRepository.updateCustomArtwork(songId, uri)
+        }
+    }
+
     fun toggleFavorite(song: Song) {
         viewModelScope.launch {
             musicRepository.toggleFavorite(song.mediaStoreId, !song.isFavorite)
