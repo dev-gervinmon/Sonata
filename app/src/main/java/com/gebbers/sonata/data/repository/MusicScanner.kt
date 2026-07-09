@@ -75,8 +75,8 @@ class MusicScanner @Inject constructor(
                 val trackRaw = if (trackColumn != -1) cursor.getInt(trackColumn) else 0
                 val discRaw = if (discColumn != -1) cursor.getInt(discColumn) else 0
 
-                val discNumber = if (discRaw > 0) discRaw else trackRaw / 1000
-                val trackNumber = if (discRaw > 0) trackRaw else trackRaw % 1000
+                val trackNumber = if (trackRaw >= 1000) trackRaw % 1000 else trackRaw
+                val discNumber = if (discRaw > 0) discRaw else if (trackRaw >= 1000) trackRaw / 1000 else 0
                 
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
