@@ -44,6 +44,10 @@ interface MusicRepository {
         newDiscNumber: Int?
     ): Boolean
 
+    suspend fun updateCustomArtwork(songId: Long, artworkUri: String): Boolean
+    
+    suspend fun searchOnlineArtwork(query: String): List<String>
+
     suspend fun getLyrics(song: Song): String?
 
     fun getExcludedFolders(): Flow<List<String>>
