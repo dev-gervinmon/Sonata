@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
         ExcludedFolderEntity::class,
         ScannedFolderEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class SonataDatabase : RoomDatabase() {
