@@ -231,9 +231,9 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    fun updateSongTags(songId: Long, title: String, artist: String, album: String) {
+    fun updateSongTags(songId: Long, title: String, artist: String, album: String, trackNumber: Int?, discNumber: Int?) {
         viewModelScope.launch {
-            musicRepository.updateSongTags(songId, title, artist, album)
+            musicRepository.updateSongTags(songId, title, artist, album, trackNumber, discNumber)
         }
     }
 
