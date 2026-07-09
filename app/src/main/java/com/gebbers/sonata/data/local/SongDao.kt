@@ -26,6 +26,9 @@ interface SongDao {
     @Query("UPDATE songs SET lyrics = :lyrics WHERE mediaStoreId = :id")
     suspend fun updateLyrics(id: Long, lyrics: String?)
 
+    @Query("UPDATE songs SET customAlbumArtUri = :artworkUri WHERE mediaStoreId = :id")
+    suspend fun updateCustomArtwork(id: Long, artworkUri: String?)
+
     @Query("UPDATE songs SET genre = :genre WHERE mediaStoreId = :id")
     suspend fun updateGenre(id: Long, genre: String?)
 
