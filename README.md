@@ -29,7 +29,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Custom Playlists**: Create and manage your own song collections.
 - **Smart Playlists**: Automatically generated lists for "Recently Added," "Most Played," and "Recently Played."
 - **Favorites System**: Quick "Heart" toggle to save and access your top tracks instantly.
-- **Tag Editor**: Edit song metadata (Title, Artist, Album) and automatically rename files on disk to match.
+- **Tag Editor**: Edit song metadata (Title, Artist, Album, Track, Disc) and automatically rename files on disk to match.
+- **Custom Album Art**: Choose any image from your gallery or search the internet (via iTunes API) to replace missing or low-quality album covers.
 
 ### 🎛️ Audio Effects
 - **5-Band Equalizer**: Direct hardware-level integration with band sliders.
