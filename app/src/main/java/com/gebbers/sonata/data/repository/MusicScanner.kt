@@ -52,7 +52,8 @@ class MusicScanner @Inject constructor(
             val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
 
             while (cursor.moveToNext()) {
-                val data = cursor.getString(dataColumn)
+                val data = if (dataColumn != -1) cursor.getString(dataColumn) else null
+                if (data == null) continue
                 
                 // Folder Exclusion Check
                 if (excludedFolders.any { data.startsWith(it) }) continue
@@ -60,13 +61,13 @@ class MusicScanner @Inject constructor(
                 // Scanned Folders (Whitelist) Check
                 if (scannedFolders.isNotEmpty() && !scannedFolders.any { data.startsWith(it) }) continue
 
-                val id = cursor.getLong(idColumn)
-                val title = cursor.getString(titleColumn) ?: "Unknown"
-                val artist = cursor.getString(artistColumn) ?: "Unknown"
-                val album = cursor.getString(albumColumn) ?: "Unknown"
-                val duration = cursor.getLong(durationColumn)
-                val albumId = cursor.getLong(albumIdColumn)
-                val year = cursor.getInt(yearColumn)
+                val id = if (idColumn != -1) cursor.getLong(idColumn) else 0L
+                val title = if (titleColumn != -1) cursor.getString(titleColumn) ?: "Unknown" else "Unknown"
+                val artist = if (artistColumn != -1) cursor.getString(artistColumn) ?: "Unknown" else "Unknown"
+                val album = if (albumColumn != -1) cursor.getString(albumColumn) ?: "Unknown" else "Unknown"
+                val duration = if (durationColumn != -1) cursor.getLong(durationColumn) else 0L
+                val albumId = if (albumIdColumn != -1) cursor.getLong(albumIdColumn) else 0L
+                val year = if (yearColumn != -1) cursor.getInt(yearColumn) else 0
                 
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
