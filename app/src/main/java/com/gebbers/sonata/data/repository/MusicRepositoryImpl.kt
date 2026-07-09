@@ -7,6 +7,7 @@ import android.provider.MediaStore
 import com.gebbers.sonata.data.local.*
 import com.gebbers.sonata.data.mapper.toEntity
 import com.gebbers.sonata.data.mapper.toSong
+import com.gebbers.sonata.data.remote.ITunesSearchService
 import com.gebbers.sonata.domain.model.Album
 import com.gebbers.sonata.domain.model.Artist
 import com.gebbers.sonata.domain.model.Folder
@@ -30,7 +31,8 @@ class MusicRepositoryImpl @Inject constructor(
     private val playlistDao: PlaylistDao,
     private val excludedFolderDao: ExcludedFolderDao,
     private val scannedFolderDao: ScannedFolderDao,
-    private val musicScanner: MusicScanner
+    private val musicScanner: MusicScanner,
+    private val iTunesSearchService: ITunesSearchService
 ) : MusicRepository {
 
     override fun getAllSongs(): Flow<List<Song>> {
@@ -215,9 +217,6 @@ class MusicRepositoryImpl @Inject constructor(
                 put(MediaStore.Audio.Media.ARTIST, newArtist)
                 put(MediaStore.Audio.Media.ALBUM, newAlbum)
                 put(MediaStore.Audio.Media.TRACK, (newDiscNumber ?: 0) * 1000 + (newTrackNumber ?: 0))
-                // Note: disc_number might not be available for update on all versions
-
-                // Also rename the physical file on disk
                 put(MediaStore.Audio.Media.DISPLAY_NAME, "$newArtist - $newTitle.$extension")
             }
 
@@ -231,6 +230,27 @@ class MusicRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+
+    override suspend fun updateCustomArtwork(songId: Long, artworkUri: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            songDao.updateCustomArtwork(songId, artworkUri)
+            refreshLibrary()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    override suspend fun searchOnlineArtwork(query: String): List<String> = withContext(Dispatchers.IO) {
+        try {
+            val response = iTunesSearchService.searchAlbum(query)
+            response.results.map { it.artworkUrlHighRes }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 
