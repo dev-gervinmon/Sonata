@@ -201,7 +201,8 @@ fun LibraryScreen(
                                 SongList(
                                     songs = state.songs,
                                     onSongClick = { viewModel.playSong(it) },
-                                    onMoreClick = { selectedSongForMenu = it }
+                                    onMoreClick = { selectedSongForMenu = it },
+                                    showTrackNumbers = mode is BrowsingMode.AlbumDetail
                                 )
                             }
                             is LibraryUiState.Empty -> {
@@ -293,8 +294,8 @@ fun LibraryScreen(
         TagEditorDialog(
             song = songForTagEditing!!,
             onDismiss = { songForTagEditing = null },
-            onSave = { title, artist, album ->
-                viewModel.updateSongTags(songForTagEditing!!.mediaStoreId, title, artist, album)
+            onSave = { title, artist, album, track, disc ->
+                viewModel.updateSongTags(songForTagEditing!!.mediaStoreId, title, artist, album, track, disc)
                 songForTagEditing = null
             }
         )
@@ -305,11 +306,13 @@ fun LibraryScreen(
 fun TagEditorDialog(
     song: Song,
     onDismiss: () -> Unit,
-    onSave: (String, String, String) -> Unit
+    onSave: (String, String, String, Int?, Int?) -> Unit
 ) {
     var title by remember { mutableStateOf(song.title) }
     var artist by remember { mutableStateOf(song.artist) }
     var album by remember { mutableStateOf(song.album) }
+    var trackNumber by remember { mutableStateOf(song.trackNumber?.toString() ?: "") }
+    var discNumber by remember { mutableStateOf(song.discNumber?.toString() ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -334,10 +337,34 @@ fun TagEditorDialog(
                     label = { Text("Album") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = trackNumber,
+                        onValueChange = { if (it.all { char -> char.isDigit() }) trackNumber = it },
+                        label = { Text("Track") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = discNumber,
+                        onValueChange = { if (it.all { char -> char.isDigit() }) discNumber = it },
+                        label = { Text("Disc") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                }
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(title, artist, album) }) {
+            Button(onClick = { 
+                onSave(
+                    title, 
+                    artist, 
+                    album, 
+                    trackNumber.toIntOrNull(), 
+                    discNumber.toIntOrNull()
+                ) 
+            }) {
                 Text("Save")
             }
         },
