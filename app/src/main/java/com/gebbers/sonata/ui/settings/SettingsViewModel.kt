@@ -5,17 +5,25 @@ import androidx.lifecycle.viewModelScope
 import com.gebbers.sonata.data.preferences.PreferenceManager
 import com.gebbers.sonata.domain.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+sealed interface SettingsEvent {
+    data class Toast(val message: String) : SettingsEvent
+}
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val preferenceManager: PreferenceManager,
     private val musicRepository: MusicRepository
 ) : ViewModel() {
+
+    private val _isScanning = MutableStateFlow(false)
+    val isScanning = _isScanning.asStateFlow()
+
+    private val _eventFlow = MutableSharedFlow<SettingsEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
     val dynamicTheming: StateFlow<Boolean> = preferenceManager.dynamicTheming
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -68,9 +76,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun bulkCleanTags() {
+    fun rescanLibrary() {
         viewModelScope.launch {
-            musicRepository.bulkCleanTags()
+            _isScanning.value = true
+            try {
+                musicRepository.refreshLibrary()
+                _eventFlow.emit(SettingsEvent.Toast("Library rescan complete"))
+            } catch (e: Exception) {
+                _eventFlow.emit(SettingsEvent.Toast("Rescan failed: ${e.message}"))
+            } finally {
+                _isScanning.value = false
+            }
         }
     }
 }
