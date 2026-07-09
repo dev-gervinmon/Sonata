@@ -1,14 +1,13 @@
 package com.gebbers.sonata.ui.library
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -18,14 +17,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.gebbers.sonata.domain.model.Song
+import com.gebbers.sonata.ui.equalizer.EqualizerViewModel
+import com.gebbers.sonata.ui.settings.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
-    viewModel: LibraryViewModel
+    viewModel: LibraryViewModel,
+    equalizerViewModel: EqualizerViewModel,
+    settingsViewModel: SettingsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val browsingMode by viewModel.browsingMode.collectAsState()
@@ -193,29 +197,24 @@ fun LibraryScreen(
                         )
                     }
                     else -> {
-                        when (val state = uiState) {
-                            is LibraryUiState.Loading -> {
-                                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        val state = uiState
+                        if (state is LibraryUiState.Loading) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        } else if (state is LibraryUiState.Success) {
+                            SongList(
+                                songs = state.songs,
+                                onSongClick = { viewModel.playSong(it) },
+                                onMoreClick = { selectedSongForMenu = it },
+                                showTrackNumbers = mode is BrowsingMode.AlbumDetail
+                            )
+                        } else if (state is LibraryUiState.Empty) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("No music found")
                             }
-                            is LibraryUiState.Success -> {
-                                SongList(
-                                    songs = state.songs,
-                                    onSongClick = { viewModel.playSong(it) },
-                                    onMoreClick = { selectedSongForMenu = it },
-                                    showTrackNumbers = mode is BrowsingMode.AlbumDetail
-                                )
+                        } else if (state is LibraryUiState.NoResults) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("No results found for \"$searchQuery\"")
                             }
-                            is LibraryUiState.Empty -> {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text("No music found")
-                                }
-                            }
-                            is LibraryUiState.NoResults -> {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text("No results found for \"$searchQuery\"")
-                                }
-                            }
-                            else -> {}
                         }
                     }
                 }
@@ -262,12 +261,8 @@ fun LibraryScreen(
                             AsyncImage(
                                 model = selectedSongForMenu!!.albumArtUri,
                                 contentDescription = null,
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(MaterialTheme.shapes.small)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentScale = ContentScale.Crop,
-                                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.MusicNote)
+                                modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.small),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     )
