@@ -96,11 +96,15 @@ fun MainScreen(
                     Screen.Search -> {
                         // Reuse library for now
                         LibraryScreen(
-                            viewModel = libraryViewModel
+                            viewModel = libraryViewModel,
+                            equalizerViewModel = equalizerViewModel,
+                            settingsViewModel = settingsViewModel
                         )
                     }
                     Screen.Library -> LibraryScreen(
-                        viewModel = libraryViewModel
+                        viewModel = libraryViewModel,
+                        equalizerViewModel = equalizerViewModel,
+                        settingsViewModel = settingsViewModel
                     )
                 }
             }
