@@ -145,7 +145,7 @@ fun SettingsScreen(
                 item {
                     SettingsHeader("About")
                     ListItem(
-                        headlineContent = { Text("Sonata Music Player") },
+                        headlineContent = { Text("Sonata") },
                         supportingContent = { Text("Version 1.0.0") },
                         leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
                     )
