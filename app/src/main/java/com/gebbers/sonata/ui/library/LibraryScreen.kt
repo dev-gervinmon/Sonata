@@ -198,7 +198,7 @@ fun LibraryScreen(
                     else -> {
                         val state = uiState
                         if (state is LibraryUiState.Loading) {
-                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                            ShimmerList()
                         } else if (state is LibraryUiState.Success) {
                             SongList(
                                 songs = state.songs,
