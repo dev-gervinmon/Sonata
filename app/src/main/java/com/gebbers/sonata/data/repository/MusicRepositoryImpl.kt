@@ -302,8 +302,16 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override fun searchSongs(query: String): Flow<List<Song>> {
-        return songDao.searchSongs(query).map { entities ->
-            entities.map { it.toSong() }
+        val sanitizedQuery = query.trim().split(Regex("\\s+"))
+            .filter { it.isNotBlank() }
+            .joinToString(" ") { "$it*" }
+            
+        return if (sanitizedQuery.isEmpty()) {
+            kotlinx.coroutines.flow.flowOf(emptyList())
+        } else {
+            songDao.searchSongs(sanitizedQuery).map { entities ->
+                entities.map { it.toSong() }
+            }
         }
     }
 
