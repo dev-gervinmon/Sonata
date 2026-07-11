@@ -231,6 +231,12 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    fun reorderPlaylist(playlistId: Long, songs: List<Song>) {
+        viewModelScope.launch {
+            musicRepository.reorderPlaylist(playlistId, songs)
+        }
+    }
+
     fun updateSongTags(songId: Long, title: String, artist: String, album: String, trackNumber: Int?, discNumber: Int?) {
         viewModelScope.launch {
             musicRepository.updateSongTags(songId, title, artist, album, trackNumber, discNumber)
