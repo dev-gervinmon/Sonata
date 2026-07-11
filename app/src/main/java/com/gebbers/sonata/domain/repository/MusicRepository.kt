@@ -34,6 +34,7 @@ interface MusicRepository {
     suspend fun deletePlaylist(playlist: Playlist)
     suspend fun addSongToPlaylist(playlistId: Long, mediaStoreId: Long)
     suspend fun removeSongFromPlaylist(playlistId: Long, mediaStoreId: Long)
+    suspend fun reorderPlaylist(playlistId: Long, songs: List<Song>)
 
     suspend fun updateSongTags(
         songId: Long,
