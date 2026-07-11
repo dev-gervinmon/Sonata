@@ -8,6 +8,7 @@ import com.gebbers.sonata.data.local.*
 import com.gebbers.sonata.data.mapper.toEntity
 import com.gebbers.sonata.data.mapper.toSong
 import com.gebbers.sonata.data.remote.ITunesSearchService
+import com.gebbers.sonata.data.remote.LyricsService
 import com.gebbers.sonata.domain.model.Album
 import com.gebbers.sonata.domain.model.Artist
 import com.gebbers.sonata.domain.model.Folder
@@ -33,6 +34,7 @@ class MusicRepositoryImpl @Inject constructor(
     private val scannedFolderDao: ScannedFolderDao,
     private val musicScanner: MusicScanner,
     private val iTunesSearchService: ITunesSearchService,
+    private val lyricsService: LyricsService
 ) : MusicRepository {
 
     override fun getAllSongs(): Flow<List<Song>> {
@@ -264,10 +266,25 @@ class MusicRepositoryImpl @Inject constructor(
     override suspend fun getLyrics(song: Song): String? = withContext(Dispatchers.IO) {
         song.lyrics?.let { return@withContext it }
         
-        val lyrics = musicScanner.getLyrics(song.dataPath)?.also {
-            songDao.updateLyrics(song.mediaStoreId, it)
+        // 1. Try local scanning
+        val localLyrics = musicScanner.getLyrics(song.dataPath)
+        if (localLyrics != null) {
+            songDao.updateLyrics(song.mediaStoreId, localLyrics)
+            return@withContext localLyrics
         }
-        lyrics
+
+        // 2. Try online fetching
+        try {
+            val response = lyricsService.getLyrics(song.artist, song.title)
+            response.lyrics?.let {
+                songDao.updateLyrics(song.mediaStoreId, it)
+                return@withContext it
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        
+        null
     }
 
     override fun getExcludedFolders(): Flow<List<String>> {
