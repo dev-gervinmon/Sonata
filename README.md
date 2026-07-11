@@ -21,6 +21,8 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **MediaStore Scanner**: Automatically indexes all local music files.
 - **Room Database**: Persistent storage for fast library access.
 - **Instant Search**: Reactive search across titles, artists, and albums.
+- **Advanced Search**: Global search support for Genres, Folders, and even Lyrics content.
+- **Fuzzy Search**: Powered by SQLite FTS4 for fast, typo-tolerant discovery.
 - **Artists & Albums Views**: Dedicated groupings for better structured library browsing.
 - **Genre & Year Views**: Explore your collection by musical style or release era.
 - **Folder-based Browsing**: Navigate your music by its actual directory structure.
