@@ -13,5 +13,6 @@ data class PlaylistEntity(
 @Entity(tableName = "playlist_song_cross_ref", primaryKeys = ["playlistId", "mediaStoreId"])
 data class PlaylistSongCrossRef(
     val playlistId: Long,
-    val mediaStoreId: Long
+    val mediaStoreId: Long,
+    val position: Int = 0
 )
