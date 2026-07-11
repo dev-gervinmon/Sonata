@@ -76,7 +76,7 @@ class PlaybackService : MediaLibraryService() {
                     androidx.media3.common.MediaMetadata.Builder()
                         .setIsBrowsable(true)
                         .setIsPlayable(false)
-                        .setTitle("Sonata Library")
+                        .setTitle("Library")
                         .build()
                 )
                 .build()
