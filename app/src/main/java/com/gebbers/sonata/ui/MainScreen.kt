@@ -130,8 +130,6 @@ fun MainScreen(
                 onToggleRepeatMode = { libraryViewModel.toggleRepeatMode() },
                 onSkipNext = { libraryViewModel.skipToNext() },
                 onSkipPrevious = { libraryViewModel.skipToPrevious() },
-                onSeekForward = { libraryViewModel.seekForward() },
-                onSeekBack = { libraryViewModel.seekBack() },
                 onSeek = { libraryViewModel.seekTo(it) },
                 onSetSleepTimer = { libraryViewModel.setSleepTimer(it) },
                 onCancelSleepTimer = { libraryViewModel.cancelSleepTimer() },
