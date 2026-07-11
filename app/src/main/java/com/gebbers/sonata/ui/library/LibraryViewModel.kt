@@ -231,6 +231,12 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    fun removeSongFromPlaylist(playlistId: Long, songId: Long) {
+        viewModelScope.launch {
+            musicRepository.removeSongFromPlaylist(playlistId, songId)
+        }
+    }
+
     fun reorderPlaylist(playlistId: Long, songs: List<Song>) {
         viewModelScope.launch {
             musicRepository.reorderPlaylist(playlistId, songs)
