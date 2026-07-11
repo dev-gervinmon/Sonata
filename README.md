@@ -46,6 +46,7 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Mini Player**: Persistent control bar for quick access while browsing the library.
 - **Full Player Screen**: Immersive Material3 bottom sheet with rich controls.
 - **Lyrics Support**: Integrated display for both embedded and external synced (.lrc) lyrics.
+- **Online Lyrics**: Automatically fetches missing lyrics from the internet if not found in your local files.
 - **Dynamic Theming**: Automatically updates the app's accent colors based on the currently playing album art.
 - **Android Auto Support**: Full integration with the Android Auto media ecosystem for a safe and professional driving experience.
 - **Settings Page**: Customizable experience including theme toggles and library management.
