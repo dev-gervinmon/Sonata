@@ -62,8 +62,8 @@ fun LibraryScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Your Library",
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = "Library",
+                    style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold
                 )
                 IconButton(onClick = { viewModel.showSettings() }) {
