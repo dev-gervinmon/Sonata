@@ -11,7 +11,15 @@ interface SongDao {
     @Query("SELECT * FROM songs ORDER BY title ASC")
     fun getAllSongs(): Flow<List<SongEntity>>
 
-    @Query("SELECT * FROM songs WHERE title LIKE '%' || :query || '%' OR artist LIKE '%' || :query || '%' OR album LIKE '%' || :query || '%'")
+    @Query("""
+        SELECT * FROM songs 
+        WHERE title LIKE '%' || :query || '%' 
+        OR artist LIKE '%' || :query || '%' 
+        OR album LIKE '%' || :query || '%' 
+        OR genre LIKE '%' || :query || '%' 
+        OR dataPath LIKE '%' || :query || '%' 
+        OR lyrics LIKE '%' || :query || '%'
+    """)
     fun searchSongs(query: String): Flow<List<SongEntity>>
 
     @Query("SELECT * FROM songs WHERE isFavorite = 1 ORDER BY title ASC")
