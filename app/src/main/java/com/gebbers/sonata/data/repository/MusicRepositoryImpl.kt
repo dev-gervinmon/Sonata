@@ -185,11 +185,18 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addSongToPlaylist(playlistId: Long, mediaStoreId: Long) {
-        playlistDao.addSongToPlaylist(PlaylistSongCrossRef(playlistId, mediaStoreId))
+        val maxPos = playlistDao.getMaxPosition(playlistId) ?: -1
+        playlistDao.addSongToPlaylist(PlaylistSongCrossRef(playlistId, mediaStoreId, maxPos + 1))
     }
 
     override suspend fun removeSongFromPlaylist(playlistId: Long, mediaStoreId: Long) {
         playlistDao.removeSongFromPlaylist(PlaylistSongCrossRef(playlistId, mediaStoreId))
+    }
+
+    override suspend fun reorderPlaylist(playlistId: Long, songs: List<Song>) {
+        songs.forEachIndexed { index, song ->
+            playlistDao.updateSongPosition(playlistId, song.mediaStoreId, index)
+        }
     }
 
     override suspend fun updateSongTags(
