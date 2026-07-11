@@ -35,9 +35,10 @@ The core playback engine and data infrastructure are complete. The app is curren
 - **Custom Album Art**: Choose any image from your gallery or search the internet (via iTunes API) to replace missing or low-quality album covers.
 
 ### 🎛️ Audio Effects
-- **5-Band Equalizer**: Direct hardware-level integration with band sliders.
-- **Presets**: Support for system audio presets (Rock, Pop, Jazz, etc.).
+- **5-Band Equalizer**: Direct hardware-level integration with band sliders and presets.
+- **Bass Boost & Virtualizer**: Dedicated controls to enhance low-end and spatial depth.
 - **Volume Normalization**: Built-in loudness enhancement to balance track levels.
+- **Audio Visualizer**: Real-time FFT spectrum analysis integrated into the audio effects screen.
 
 ### 🛠️ Advanced Tools
 - **Sleep Timer**: Customizable countdown to automatically stop playback.
