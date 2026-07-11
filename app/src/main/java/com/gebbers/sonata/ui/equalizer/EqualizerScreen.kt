@@ -18,6 +18,7 @@ fun EqualizerScreen(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val fftData by viewModel.fftData.collectAsState()
 
     Scaffold(
         topBar = {
@@ -35,9 +36,17 @@ fun EqualizerScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                VisualizerView(
+                    magnitudes = fftData,
+                    modifier = Modifier.fillMaxWidth().height(120.dp)
+                )
+            }
+
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -101,7 +110,57 @@ fun EqualizerScreen(
             }
 
             item {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // Bass Boost
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Bass Boost", style = MaterialTheme.typography.titleLarge)
+                    Switch(
+                        checked = state.isBassBoostEnabled,
+                        onCheckedChange = { viewModel.setBassBoostEnabled(it) }
+                    )
+                }
+                
+                if (state.isBassBoostEnabled) {
+                    Slider(
+                        value = state.bassBoostStrength.toFloat(),
+                        onValueChange = { viewModel.setBassBoostStrength(it.toInt().toShort()) },
+                        valueRange = 0f..1000f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Virtualizer
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Virtualizer", style = MaterialTheme.typography.titleLarge)
+                    Switch(
+                        checked = state.isVirtualizerEnabled,
+                        onCheckedChange = { viewModel.setVirtualizerEnabled(it) }
+                    )
+                }
+                
+                if (state.isVirtualizerEnabled) {
+                    Slider(
+                        value = state.virtualizerStrength.toFloat(),
+                        onValueChange = { viewModel.setVirtualizerStrength(it.toInt().toShort()) },
+                        valueRange = 0f..1000f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Loudness Enhancer
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -133,6 +192,8 @@ fun EqualizerScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
