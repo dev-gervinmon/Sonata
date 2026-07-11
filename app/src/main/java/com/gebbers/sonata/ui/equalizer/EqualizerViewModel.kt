@@ -9,6 +9,7 @@ class EqualizerViewModel @Inject constructor(
     private val equalizerManager: EqualizerManager
 ) : ViewModel() {
     val state = equalizerManager.state
+    val fftData = equalizerManager.fftData
 
     fun setEnabled(enabled: Boolean) {
         equalizerManager.setEnabled(enabled)
@@ -28,5 +29,21 @@ class EqualizerViewModel @Inject constructor(
 
     fun setLoudnessGain(gain: Int) {
         equalizerManager.setLoudnessGain(gain)
+    }
+
+    fun setBassBoostEnabled(enabled: Boolean) {
+        equalizerManager.setBassBoostEnabled(enabled)
+    }
+
+    fun setBassBoostStrength(strength: Short) {
+        equalizerManager.setBassBoostStrength(strength)
+    }
+
+    fun setVirtualizerEnabled(enabled: Boolean) {
+        equalizerManager.setVirtualizerEnabled(enabled)
+    }
+
+    fun setVirtualizerStrength(strength: Short) {
+        equalizerManager.setVirtualizerStrength(strength)
     }
 }
