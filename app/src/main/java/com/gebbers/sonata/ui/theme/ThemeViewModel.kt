@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ThemeViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _seedColor = MutableStateFlow<Color?>(null)
     val seedColor = _seedColor.asStateFlow()

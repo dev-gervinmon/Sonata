@@ -16,10 +16,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
 
 @Singleton
 class MusicController @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val musicRepository: com.gebbers.sonata.domain.repository.MusicRepository
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -112,7 +113,7 @@ class MusicController @Inject constructor(
                 controller?.let {
                     _currentPosition.value = it.currentPosition
                 }
-                delay(1000)
+                delay(1000.milliseconds)
             }
         }
     }
@@ -176,7 +177,7 @@ class MusicController @Inject constructor(
         sleepTimerJob = scope.launch {
             var remaining = totalMillis
             while (remaining > 0) {
-                delay(1000)
+                delay(1000.milliseconds)
                 remaining -= 1000
                 _sleepTimerMillisLeft.value = remaining
             }

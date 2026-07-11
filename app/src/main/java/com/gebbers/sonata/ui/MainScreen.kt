@@ -1,6 +1,5 @@
 package com.gebbers.sonata.ui
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -100,8 +99,6 @@ fun MainScreen(
                     )
                     Screen.Library -> LibraryScreen(
                         viewModel = libraryViewModel,
-                        equalizerViewModel = equalizerViewModel,
-                        settingsViewModel = settingsViewModel
                     )
                 }
             }

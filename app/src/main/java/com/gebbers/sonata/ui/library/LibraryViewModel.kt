@@ -11,6 +11,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 sealed interface BrowsingMode {
     object AllSongs : BrowsingMode
@@ -36,7 +37,7 @@ sealed interface BrowsingMode {
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val musicRepository: MusicRepository,
-    val musicController: MusicController
+    val musicController: MusicController,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LibraryUiState>(LibraryUiState.Loading)
@@ -48,8 +49,7 @@ class LibraryViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(value = false)
 
     val currentSong = musicController.currentSong
     val isPlaying = musicController.isPlaying
@@ -61,13 +61,13 @@ class LibraryViewModel @Inject constructor(
     val playbackSpeed = musicController.playbackSpeed
     val playbackPitch = musicController.playbackPitch
 
-    private val _isPlayerSheetVisible = MutableStateFlow(false)
+    private val _isPlayerSheetVisible = MutableStateFlow(value = false)
     val isPlayerSheetVisible = _isPlayerSheetVisible.asStateFlow()
 
-    private val _isEqualizerVisible = MutableStateFlow(false)
+    private val _isEqualizerVisible = MutableStateFlow(value = false)
     val isEqualizerVisible = _isEqualizerVisible.asStateFlow()
 
-    private val _isSettingsVisible = MutableStateFlow(false)
+    private val _isSettingsVisible = MutableStateFlow(value = false)
     val isSettingsVisible = _isSettingsVisible.asStateFlow()
 
     private val _folders = MutableStateFlow<List<com.gebbers.sonata.domain.model.Folder>>(emptyList())
@@ -89,7 +89,6 @@ class LibraryViewModel @Inject constructor(
     val years = _years.asStateFlow()
 
     private val _excludedFolders = MutableStateFlow<List<String>>(emptyList())
-    val excludedFolders = _excludedFolders.asStateFlow()
 
     val recentlyPlayed: StateFlow<List<Song>> = musicRepository.getRecentlyPlayed()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -113,7 +112,7 @@ class LibraryViewModel @Inject constructor(
     private fun observeCurrentSongForLyrics() {
         viewModelScope.launch {
             musicController.currentSong.collect { song ->
-                if (song != null && song.lyrics == null) {
+                if ((song != null) && (song.lyrics == null)) {
                     musicRepository.getLyrics(song)
                 }
             }
@@ -178,7 +177,7 @@ class LibraryViewModel @Inject constructor(
 
     private fun observeSongs() {
         viewModelScope.launch {
-            combine(_searchQuery.debounce(300L), _browsingMode) { query, mode ->
+            combine(_searchQuery.debounce(300.milliseconds), _browsingMode) { query, mode ->
                 query to mode
             }.flatMapLatest { (query, mode) ->
                 if (query.isNotBlank()) {
@@ -283,7 +282,7 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun navigateBack(): Boolean {
-        return when (val current = _browsingMode.value) {
+        return when (_browsingMode.value) {
             is BrowsingMode.ArtistDetail -> {
                 _browsingMode.value = BrowsingMode.Artists
                 true
@@ -308,9 +307,17 @@ class LibraryViewModel @Inject constructor(
                 _browsingMode.value = BrowsingMode.Playlists
                 true
             }
-            is BrowsingMode.Artists, is BrowsingMode.Albums, is BrowsingMode.Folders, 
-            is BrowsingMode.Playlists, is BrowsingMode.Favorites, is BrowsingMode.Genres, is BrowsingMode.Years,
-            is BrowsingMode.RecentlyAdded, is BrowsingMode.RecentlyPlayed, is BrowsingMode.MostPlayed -> {
+            is BrowsingMode.Artists,
+            is BrowsingMode.Albums,
+            is BrowsingMode.Folders,
+            is BrowsingMode.Playlists,
+            is BrowsingMode.Favorites,
+            is BrowsingMode.Genres,
+            is BrowsingMode.Years,
+            is BrowsingMode.RecentlyAdded,
+            is BrowsingMode.RecentlyPlayed,
+            is BrowsingMode.MostPlayed,
+            -> {
                 _browsingMode.value = BrowsingMode.AllSongs
                 true
             }
@@ -324,20 +331,13 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    fun includeFolder(path: String) {
-        viewModelScope.launch {
-            musicRepository.includeFolder(path)
-        }
-    }
-
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
 
     fun playSong(song: Song) {
-        val currentState = uiState.value
-        if (currentState is LibraryUiState.Success) {
-            musicController.playSong(song, currentState.songs)
+        (uiState.value as? LibraryUiState.Success)?.let {
+            musicController.playSong(song, it.songs)
         }
     }
 
@@ -418,7 +418,7 @@ class LibraryViewModel @Inject constructor(
             _isRefreshing.value = true
             try {
                 musicRepository.refreshLibrary()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Log error or show snackbar
             } finally {
                 _isRefreshing.value = false
@@ -435,7 +435,6 @@ class LibraryViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         musicController.release()
     }
 }

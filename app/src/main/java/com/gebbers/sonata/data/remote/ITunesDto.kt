@@ -3,7 +3,7 @@ package com.gebbers.sonata.data.remote
 import com.google.gson.annotations.SerializedName
 
 data class ITunesSearchResponse(
-    @SerializedName("results") val results: List<ITunesResult>
+    @SerializedName("results") val results: List<ITunesResult>,
 )
 
 data class ITunesResult(

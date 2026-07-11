@@ -18,15 +18,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.gebbers.sonata.domain.model.Song
-import com.gebbers.sonata.ui.equalizer.EqualizerViewModel
-import com.gebbers.sonata.ui.settings.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel,
-    equalizerViewModel: EqualizerViewModel,
-    settingsViewModel: SettingsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val browsingMode by viewModel.browsingMode.collectAsState()
@@ -43,8 +39,6 @@ fun LibraryScreen(
     var songForTagEditing by remember { mutableStateOf<Song?>(null) }
     var songForArtworkSelection by remember { mutableStateOf<Song?>(null) }
     var isAddingToPlaylist by remember { mutableStateOf(false) }
-
-    val playlistSheetState = rememberModalBottomSheetState()
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (browsingMode !is BrowsingMode.FolderDetail && 
@@ -196,24 +190,27 @@ fun LibraryScreen(
                         )
                     }
                     else -> {
-                        val state = uiState
-                        if (state is LibraryUiState.Loading) {
-                            ShimmerList()
-                        } else if (state is LibraryUiState.Success) {
-                            SongList(
-                                songs = state.songs,
-                                onSongClick = { viewModel.playSong(it) },
-                                onMoreClick = { selectedSongForMenu = it },
-                                showTrackNumbers = mode is BrowsingMode.AlbumDetail
-                            )
-                        } else if (state is LibraryUiState.Empty) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("No music found")
+                        when (val state = uiState) {
+                            is LibraryUiState.Loading -> ShimmerList()
+                            is LibraryUiState.Success -> {
+                                SongList(
+                                    songs = state.songs,
+                                    onSongClick = { viewModel.playSong(it) },
+                                    onMoreClick = { selectedSongForMenu = it },
+                                    showTrackNumbers = mode is BrowsingMode.AlbumDetail
+                                )
                             }
-                        } else if (state is LibraryUiState.NoResults) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("No results found for \"$searchQuery\"")
+                            is LibraryUiState.Empty -> {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text("No music found")
+                                }
                             }
+                            is LibraryUiState.NoResults -> {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text("No results found for \"$searchQuery\"")
+                                }
+                            }
+                            else -> {}
                         }
                     }
                 }

@@ -1,8 +1,6 @@
 package com.gebbers.sonata.ui.library
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -17,7 +15,7 @@ import com.gebbers.sonata.domain.model.Song
 @Composable
 fun SearchScreen(
     viewModel: LibraryViewModel,
-    onSongClick: (Song) -> Unit
+    onSongClick: (Song) -> Unit,
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val uiState by viewModel.uiState.collectAsState()

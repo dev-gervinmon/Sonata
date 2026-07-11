@@ -12,7 +12,7 @@ import javax.inject.Singleton
 
 @Singleton
 class MusicScanner @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     fun scanInternalStorage(
         excludedFolders: List<String> = emptyList(),
@@ -110,22 +110,6 @@ class MusicScanner @Inject constructor(
         return extractLyrics(path)
     }
 
-    fun getGenre(path: String): String? {
-        return extractGenre(path)
-    }
-
-    private fun extractGenre(path: String): String? {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(path)
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
-        } catch (e: Exception) {
-            null
-        } finally {
-            try { retriever.release() } catch (e: Exception) {}
-        }
-    }
-
     private fun extractLyrics(path: String): String? {
         val synced = findSyncedLyrics(path)
         if (synced != null) return synced
@@ -134,10 +118,10 @@ class MusicScanner @Inject constructor(
         return try {
             retriever.setDataSource(path)
             retriever.extractMetadata(36)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         } finally {
-            try { retriever.release() } catch (e: Exception) {}
+            try { retriever.release() } catch (_: Exception) {}
         }
     }
 
@@ -147,7 +131,7 @@ class MusicScanner @Inject constructor(
         return if (lrcFile.exists()) {
             try {
                 lrcFile.readText()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         } else null

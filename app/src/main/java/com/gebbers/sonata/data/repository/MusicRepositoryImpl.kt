@@ -26,13 +26,13 @@ import javax.inject.Singleton
 
 @Singleton
 class MusicRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val songDao: SongDao,
     private val playlistDao: PlaylistDao,
     private val excludedFolderDao: ExcludedFolderDao,
     private val scannedFolderDao: ScannedFolderDao,
     private val musicScanner: MusicScanner,
-    private val iTunesSearchService: ITunesSearchService
+    private val iTunesSearchService: ITunesSearchService,
 ) : MusicRepository {
 
     override fun getAllSongs(): Flow<List<Song>> {
@@ -223,7 +223,7 @@ class MusicRepositoryImpl @Inject constructor(
                 put(MediaStore.Audio.Media.TITLE, newTitle)
                 put(MediaStore.Audio.Media.ARTIST, newArtist)
                 put(MediaStore.Audio.Media.ALBUM, newAlbum)
-                put(MediaStore.Audio.Media.TRACK, (newDiscNumber ?: 0) * 1000 + (newTrackNumber ?: 0))
+                put(MediaStore.Audio.Media.TRACK, ((newDiscNumber ?: 0) * 1000) + (newTrackNumber ?: 0))
                 put(MediaStore.Audio.Media.DISPLAY_NAME, "$newArtist - $newTitle.$extension")
             }
 
@@ -262,11 +262,10 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getLyrics(song: Song): String? = withContext(Dispatchers.IO) {
-        if (song.lyrics != null) return@withContext song.lyrics
+        song.lyrics?.let { return@withContext it }
         
-        val lyrics = musicScanner.getLyrics(song.dataPath)
-        if (lyrics != null) {
-            songDao.updateLyrics(song.mediaStoreId, lyrics)
+        val lyrics = musicScanner.getLyrics(song.dataPath)?.also {
+            songDao.updateLyrics(song.mediaStoreId, it)
         }
         lyrics
     }

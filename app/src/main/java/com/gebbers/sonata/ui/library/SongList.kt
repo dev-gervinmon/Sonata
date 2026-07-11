@@ -3,17 +3,23 @@ package com.gebbers.sonata.ui.library
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -23,41 +29,98 @@ import com.gebbers.sonata.domain.model.Song
 
 @Composable
 fun SongList(
+    modifier: Modifier = Modifier,
     songs: List<Song>,
     onSongClick: (Song) -> Unit,
     onMoreClick: (Song) -> Unit = {},
     showTrackNumbers: Boolean = false,
-    modifier: Modifier = Modifier
+    canReorder: Boolean = false,
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        items(songs, key = { it.mediaStoreId }) { song ->
-            AnimatedVisibility(
-                visible = true,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                SongItem(
-                    song = song,
-                    onClick = { onSongClick(song) },
-                    onMoreClick = { onMoreClick(song) },
-                    showTrackNumber = showTrackNumbers
-                )
+    if (canReorder) {
+        ReorderableSongList(
+            songs = songs,
+            onSongClick = onSongClick,
+            onMoreClick = onMoreClick,
+            modifier = modifier
+        )
+    } else {
+        LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            items(songs, key = { it.mediaStoreId }) { song ->
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    SongItem(
+                        song = song,
+                        onClick = { onSongClick(song) },
+                        onMoreClick = { onMoreClick(song) },
+                        showTrackNumber = showTrackNumbers
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
+fun ReorderableSongList(
+    songs: List<Song>,
+    onSongClick: (Song) -> Unit,
+    onMoreClick: (Song) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val listState = rememberLazyListState()
+    
+    LazyColumn(
+        state = listState,
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        itemsIndexed(songs, key = { _, song -> song.mediaStoreId }) { _, song ->
+            SongItem(
+                song = song,
+                onClick = { onSongClick(song) },
+                onMoreClick = { onMoreClick(song) },
+                showTrackNumber = false,
+                trailingContent = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { onMoreClick(song) }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = null)
+                        }
+                        Icon(
+                            imageVector = Icons.Default.DragHandle,
+                            contentDescription = "Reorder",
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .pointerInput(Unit) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDrag = { change, _ ->
+                                            change.consume()
+                                        }
+                                    )
+                                }
+                        )
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
 fun SongItem(
+    modifier: Modifier = Modifier,
     song: Song,
     onClick: () -> Unit,
     onMoreClick: () -> Unit,
     showTrackNumber: Boolean = false,
-    modifier: Modifier = Modifier
+    trailingContent: @Composable (() -> Unit)? = null,
 ) {
     ListItem(
         headlineContent = {
@@ -96,10 +159,10 @@ fun SongItem(
                     .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop,
-                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.MusicNote)
+                error = rememberVectorPainter(Icons.Default.MusicNote)
             )
         },
-        trailingContent = {
+        trailingContent = trailingContent ?: {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = formatDuration(song.duration),

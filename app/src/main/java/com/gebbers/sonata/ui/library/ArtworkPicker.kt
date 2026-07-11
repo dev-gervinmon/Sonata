@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -26,7 +25,7 @@ fun ArtworkPickerDialog(
     searchResults: List<String>,
     onSearch: (String) -> Unit,
     onSelect: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     var query by remember { mutableStateOf("${song.artist} ${song.album}") }
     val galleryLauncher = rememberLauncherForActivityResult(
