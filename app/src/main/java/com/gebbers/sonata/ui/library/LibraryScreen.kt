@@ -282,6 +282,16 @@ fun LibraryScreen(
                             selectedSongForMenu = null
                         }
                     )
+                    if (browsingMode is BrowsingMode.PlaylistDetail) {
+                        ListItem(
+                            headlineContent = { Text("Remove from playlist") },
+                            leadingContent = { Icon(Icons.Default.Delete, contentDescription = null) },
+                            modifier = Modifier.clickable {
+                                viewModel.removeSongFromPlaylist((browsingMode as BrowsingMode.PlaylistDetail).playlist.id, selectedSongForMenu!!.mediaStoreId)
+                                selectedSongForMenu = null
+                            }
+                        )
+                    }
                     ListItem(
                         headlineContent = { Text("Change artwork") },
                         leadingContent = { Icon(Icons.Default.Image, contentDescription = null) },
