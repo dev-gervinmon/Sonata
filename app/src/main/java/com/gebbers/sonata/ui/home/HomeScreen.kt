@@ -29,14 +29,18 @@ import com.gebbers.sonata.ui.library.LibraryViewModel
 @Composable
 fun HomeScreen(
     viewModel: LibraryViewModel,
-    onSongClick: (Song) -> Unit
+    onSongClick: (Song) -> Unit,
+    paddingValues: PaddingValues = PaddingValues(0.dp)
 ) {
     val topSongs by viewModel.mostPlayed.collectAsState()
     val recentSongs by viewModel.recentlyPlayed.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 80.dp)
+        contentPadding = PaddingValues(
+            top = paddingValues.calculateTopPadding(),
+            bottom = paddingValues.calculateBottomPadding() + 80.dp
+        )
     ) {
         item {
             HomeHeader("Good listening")
