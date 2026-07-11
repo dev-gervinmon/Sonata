@@ -283,6 +283,25 @@ fun LibraryScreen(
                         }
                     )
                     if (browsingMode is BrowsingMode.PlaylistDetail) {
+                        val currentSongs = (uiState as? LibraryUiState.Success)?.songs ?: emptyList()
+                        val currentIndex = currentSongs.indexOf(selectedSongForMenu)
+                        
+                        ListItem(
+                            headlineContent = { Text("Move up") },
+                            leadingContent = { Icon(Icons.Default.ArrowUpward, contentDescription = null) },
+                            modifier = Modifier.clickable(enabled = currentIndex > 0) {
+                                viewModel.moveSongInPlaylist((browsingMode as BrowsingMode.PlaylistDetail).playlist.id, currentSongs, currentIndex, currentIndex - 1)
+                                selectedSongForMenu = null
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Move down") },
+                            leadingContent = { Icon(Icons.Default.ArrowDownward, contentDescription = null) },
+                            modifier = Modifier.clickable(enabled = currentIndex < currentSongs.size - 1) {
+                                viewModel.moveSongInPlaylist((browsingMode as BrowsingMode.PlaylistDetail).playlist.id, currentSongs, currentIndex, currentIndex + 1)
+                                selectedSongForMenu = null
+                            }
+                        )
                         ListItem(
                             headlineContent = { Text("Remove from playlist") },
                             leadingContent = { Icon(Icons.Default.Delete, contentDescription = null) },
