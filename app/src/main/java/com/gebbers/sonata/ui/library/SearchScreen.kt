@@ -16,11 +16,16 @@ import com.gebbers.sonata.domain.model.Song
 fun SearchScreen(
     viewModel: LibraryViewModel,
     onSongClick: (Song) -> Unit,
+    paddingValues: PaddingValues = PaddingValues(0.dp)
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = paddingValues.calculateTopPadding())
+    ) {
         Text(
             text = "Search",
             style = MaterialTheme.typography.headlineLarge,
