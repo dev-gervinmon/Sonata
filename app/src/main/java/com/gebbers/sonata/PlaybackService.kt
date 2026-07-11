@@ -16,7 +16,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
-import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import com.gebbers.sonata.data.mapper.toMediaItem
 import com.gebbers.sonata.data.preferences.PreferenceManager
@@ -50,6 +49,9 @@ class PlaybackService : MediaLibraryService() {
     lateinit var preferenceManager: PreferenceManager
 
     private var currentFadeDuration = 1000L
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var fadeOutRunnable: Runnable? = null
+    private var volumeAnimator: android.animation.ValueAnimator? = null
 
     private val widgetReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -127,6 +129,10 @@ class PlaybackService : MediaLibraryService() {
                 mediaItem?.mediaId?.toLongOrNull()?.let { id ->
                     serviceScope.launch { musicRepository.recordSongPlayback(id) }
                 }
+                
+                // Restart fade monitoring for new track
+                resetVolume(player)
+                startFadeOutMonitor(player)
             }
 
             override fun onPositionDiscontinuity(
@@ -136,6 +142,8 @@ class PlaybackService : MediaLibraryService() {
             ) {
                 if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
                     fadeIn(player)
+                } else if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+                    resetVolume(player)
                 }
             }
         })
@@ -188,54 +196,48 @@ class PlaybackService : MediaLibraryService() {
             player.volume = 1.0f
             return
         }
+        animateVolume(player, 0f, 1.0f, currentFadeDuration)
+    }
 
-        val steps = 20
-        val interval = currentFadeDuration / steps
-        val volumeStep = 1.0f / steps
-        var currentVolume = 0f
-        player.volume = currentVolume
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-        
-        val fadeOutCheck = object : Runnable {
+    private fun fadeOut(player: Player) {
+        if (currentFadeDuration <= 0) return
+        animateVolume(player, player.volume, 0f, currentFadeDuration)
+    }
+
+    private fun resetVolume(player: Player) {
+        volumeAnimator?.cancel()
+        player.volume = 1.0f
+    }
+
+    private fun animateVolume(player: Player, from: Float, to: Float, duration: Long) {
+        volumeAnimator?.cancel()
+        volumeAnimator = android.animation.ValueAnimator.ofFloat(from, to).apply {
+            this.duration = duration
+            addUpdateListener { 
+                player.volume = it.animatedValue as Float
+            }
+            start()
+        }
+    }
+
+    private fun startFadeOutMonitor(player: Player) {
+        fadeOutRunnable?.let { handler.removeCallbacks(it) }
+        fadeOutRunnable = object : Runnable {
             override fun run() {
+                if (!player.isPlaying) {
+                    handler.postDelayed(this, 1000)
+                    return
+                }
+                
                 val remaining = player.duration - player.currentPosition
-                if (remaining in 1..currentFadeDuration) {
+                if (player.duration > 0 && remaining in 1..currentFadeDuration) {
                     fadeOut(player)
                 } else {
                     handler.postDelayed(this, 500)
                 }
             }
         }
-        handler.post(fadeOutCheck)
-        
-        val runnable = object : Runnable {
-            override fun run() {
-                if (currentVolume < 1.0f) {
-                    currentVolume += volumeStep
-                    player.volume = currentVolume
-                    handler.postDelayed(this, interval)
-                }
-            }
-        }
-        handler.post(runnable)
-    }
-
-    private fun fadeOut(player: Player) {
-        if (currentFadeDuration <= 0) return
-        
-        val steps = 20
-        val interval = currentFadeDuration / steps
-        val volumeStep = player.volume / steps
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-        val runnable = object : Runnable {
-            override fun run() {
-                if (player.volume > 0.05f) {
-                    player.volume -= volumeStep
-                    handler.postDelayed(this, interval)
-                }
-            }
-        }
-        handler.post(runnable)
+        handler.post(fadeOutRunnable!!)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
