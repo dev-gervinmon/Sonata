@@ -243,6 +243,14 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    fun moveSongInPlaylist(playlistId: Long, songs: List<Song>, fromIndex: Int, toIndex: Int) {
+        if (fromIndex !in songs.indices || toIndex !in songs.indices) return
+        val newList = songs.toMutableList()
+        val song = newList.removeAt(fromIndex)
+        newList.add(toIndex, song)
+        reorderPlaylist(playlistId, newList)
+    }
+
     fun updateSongTags(songId: Long, title: String, artist: String, album: String, trackNumber: Int?, discNumber: Int?) {
         viewModelScope.launch {
             musicRepository.updateSongTags(songId, title, artist, album, trackNumber, discNumber)
