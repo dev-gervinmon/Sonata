@@ -23,6 +23,7 @@ import com.gebbers.sonata.domain.model.Song
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel,
+    paddingValues: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val browsingMode by viewModel.browsingMode.collectAsState()
@@ -40,7 +41,11 @@ fun LibraryScreen(
     var songForArtworkSelection by remember { mutableStateOf<Song?>(null) }
     var isAddingToPlaylist by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = paddingValues.calculateTopPadding())
+    ) {
         if (browsingMode !is BrowsingMode.FolderDetail && 
             browsingMode !is BrowsingMode.ArtistDetail && 
             browsingMode !is BrowsingMode.AlbumDetail && 
