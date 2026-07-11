@@ -6,12 +6,13 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [
         SongEntity::class,
+        SongFtsEntity::class,
         PlaylistEntity::class,
         PlaylistSongCrossRef::class,
         ExcludedFolderEntity::class,
         ScannedFolderEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class SonataDatabase : RoomDatabase() {
