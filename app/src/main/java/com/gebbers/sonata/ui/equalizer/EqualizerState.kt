@@ -6,7 +6,11 @@ data class EqualizerState(
     val presets: List<String> = emptyList(),
     val currentPreset: Int = -1,
     val isLoudnessEnabled: Boolean = false,
-    val loudnessGain: Int = 0 // in mB (millibels)
+    val loudnessGain: Int = 0, // in mB (millibels)
+    val isBassBoostEnabled: Boolean = false,
+    val bassBoostStrength: Short = 0,
+    val isVirtualizerEnabled: Boolean = false,
+    val virtualizerStrength: Short = 0
 )
 
 data class EqualizerBand(
