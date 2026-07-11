@@ -1,5 +1,7 @@
 package com.gebbers.sonata.ui.playback
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -94,11 +96,19 @@ fun MiniPlayer(
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    modifier = Modifier.size(32.dp)
-                )
+                androidx.compose.animation.AnimatedContent(
+                    targetState = isPlaying,
+                    transitionSpec = {
+                        fadeIn(tween(200)) togetherWith fadeOut(tween(200))
+                    },
+                    label = "play_pause_anim"
+                ) { playing ->
+                    Icon(
+                        imageVector = if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (playing) "Pause" else "Play",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
             }
         }
     }
