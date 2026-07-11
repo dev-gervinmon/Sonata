@@ -87,18 +87,21 @@ fun MainScreen(
                 }
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
+            Box(modifier = Modifier.fillMaxSize()) {
                 when (currentScreen) {
                     Screen.Home -> HomeScreen(
                         viewModel = libraryViewModel,
-                        onSongClick = { libraryViewModel.playSong(it) }
+                        onSongClick = { libraryViewModel.playSong(it) },
+                        paddingValues = paddingValues
                     )
                     Screen.Search -> SearchScreen(
                         viewModel = libraryViewModel,
-                        onSongClick = { libraryViewModel.playSong(it) }
+                        onSongClick = { libraryViewModel.playSong(it) },
+                        paddingValues = paddingValues
                     )
                     Screen.Library -> LibraryScreen(
                         viewModel = libraryViewModel,
+                        paddingValues = paddingValues
                     )
                 }
             }
