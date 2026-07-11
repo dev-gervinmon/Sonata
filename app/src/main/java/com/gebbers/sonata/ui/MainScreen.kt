@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.gebbers.sonata.ui.home.HomeScreen
 import com.gebbers.sonata.ui.library.LibraryScreen
 import com.gebbers.sonata.ui.library.LibraryViewModel
+import com.gebbers.sonata.ui.library.SearchScreen
 import com.gebbers.sonata.ui.equalizer.EqualizerViewModel
 import com.gebbers.sonata.ui.settings.SettingsViewModel
 import com.gebbers.sonata.ui.playback.MiniPlayer
@@ -93,14 +94,10 @@ fun MainScreen(
                         viewModel = libraryViewModel,
                         onSongClick = { libraryViewModel.playSong(it) }
                     )
-                    Screen.Search -> {
-                        // Reuse library for now
-                        LibraryScreen(
-                            viewModel = libraryViewModel,
-                            equalizerViewModel = equalizerViewModel,
-                            settingsViewModel = settingsViewModel
-                        )
-                    }
+                    Screen.Search -> SearchScreen(
+                        viewModel = libraryViewModel,
+                        onSongClick = { libraryViewModel.playSong(it) }
+                    )
                     Screen.Library -> LibraryScreen(
                         viewModel = libraryViewModel,
                         equalizerViewModel = equalizerViewModel,
