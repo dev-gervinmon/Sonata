@@ -50,11 +50,11 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         
-        lifecycleScope.launch {
+        /* lifecycleScope.launch {
             viewModel.currentSong.collect { song ->
                 themeViewModel.updateColorFromImage(song?.albumArtUri)
             }
-        }
+        } */
 
         setContent {
             val seedColor by themeViewModel.seedColor.collectAsState()
