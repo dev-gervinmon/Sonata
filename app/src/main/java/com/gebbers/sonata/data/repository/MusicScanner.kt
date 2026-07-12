@@ -3,6 +3,7 @@ package com.gebbers.sonata.data.repository
 import android.content.ContentUris
 import android.content.Context
 import android.media.MediaMetadataRetriever
+import android.os.Build
 import android.provider.MediaStore
 import com.gebbers.sonata.domain.model.Song
 import java.io.File
@@ -21,7 +22,7 @@ class MusicScanner @Inject constructor(
         val songs = mutableListOf<Song>()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
-        val projection = arrayOf(
+        val projectionList = mutableListOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.TITLE,
             MediaStore.Audio.Media.ARTIST,
@@ -30,78 +31,88 @@ class MusicScanner @Inject constructor(
             MediaStore.Audio.Media.DATA,
             MediaStore.Audio.Media.ALBUM_ID,
             MediaStore.Audio.Media.YEAR,
-            MediaStore.Audio.Media.TRACK,
-            "disc_number" // MediaStore.Audio.Media.DISC_NUMBER
+            MediaStore.Audio.Media.TRACK
         )
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            projectionList.add(MediaStore.Audio.Media.DISC_NUMBER)
+        }
+
+        val projection = projectionList.toTypedArray()
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
-        context.contentResolver.query(
-            collection,
-            projection,
-            selection,
-            null,
-            sortOrder
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
-            val titleColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
-            val artistColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
-            val albumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-            val durationColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
-            val dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
-            val albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
-            val yearColumn = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
-            val trackColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
-            val discColumn = cursor.getColumnIndex("disc_number")
+        try {
+            context.contentResolver.query(
+                collection,
+                projection,
+                selection,
+                null,
+                sortOrder
+            )?.use { cursor ->
+                val idCol = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
+                val titleCol = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
+                val artistCol = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                val albumCol = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+                val durationCol = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+                val dataCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
+                val albumIdCol = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+                val yearCol = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+                val trackCol = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
+                val discCol = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    cursor.getColumnIndex(MediaStore.Audio.Media.DISC_NUMBER)
+                } else -1
 
-            while (cursor.moveToNext()) {
-                val data = if (dataColumn != -1) cursor.getString(dataColumn) else null
-                if (data == null) continue
-                
-                // Folder Exclusion Check
-                if (excludedFolders.any { data.startsWith(it) }) continue
+                while (cursor.moveToNext()) {
+                    val data = if (dataCol != -1) cursor.getString(dataCol) else null
+                    if (data == null) continue
+                    
+                    // Folder Exclusion Check
+                    if (excludedFolders.any { data.startsWith(it) }) continue
 
-                // Scanned Folders (Whitelist) Check
-                if (scannedFolders.isNotEmpty() && !scannedFolders.any { data.startsWith(it) }) continue
+                    // Scanned Folders (Whitelist) Check
+                    if (scannedFolders.isNotEmpty() && !scannedFolders.any { data.startsWith(it) }) continue
 
-                val id = if (idColumn != -1) cursor.getLong(idColumn) else 0L
-                val title = if (titleColumn != -1) cursor.getString(titleColumn) ?: "Unknown" else "Unknown"
-                val artist = if (artistColumn != -1) cursor.getString(artistColumn) ?: "Unknown" else "Unknown"
-                val album = if (albumColumn != -1) cursor.getString(albumColumn) ?: "Unknown" else "Unknown"
-                val duration = if (durationColumn != -1) cursor.getLong(durationColumn) else 0L
-                val albumId = if (albumIdColumn != -1) cursor.getLong(albumIdColumn) else 0L
-                val year = if (yearColumn != -1) cursor.getInt(yearColumn) else 0
-                val trackRaw = if (trackColumn != -1) cursor.getInt(trackColumn) else 0
-                val discRaw = if (discColumn != -1) cursor.getInt(discColumn) else 0
+                    val id = if (idCol != -1) cursor.getLong(idCol) else 0L
+                    val title = if (titleCol != -1) cursor.getString(titleCol) ?: "Unknown" else "Unknown"
+                    val artist = if (artistCol != -1) cursor.getString(artistCol) ?: "Unknown" else "Unknown"
+                    val album = if (albumCol != -1) cursor.getString(albumCol) ?: "Unknown" else "Unknown"
+                    val duration = if (durationCol != -1) cursor.getLong(durationCol) else 0L
+                    val albumId = if (albumIdCol != -1) cursor.getLong(albumIdCol) else 0L
+                    val year = if (yearCol != -1) cursor.getInt(yearCol) else 0
+                    val trackRaw = if (trackCol != -1) cursor.getInt(trackCol) else 0
+                    val discRaw = if (discCol != -1) cursor.getInt(discCol) else 0
 
-                val trackNumber = if (trackRaw >= 1000) trackRaw % 1000 else trackRaw
-                val discNumber = if (discRaw > 0) discRaw else if (trackRaw >= 1000) trackRaw / 1000 else 0
-                
-                val contentUri = ContentUris.withAppendedId(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    id
-                ).toString()
+                    val trackNumber = if (trackRaw >= 1000) trackRaw % 1000 else trackRaw
+                    val discNumber = if (discRaw > 0) discRaw else if (trackRaw >= 1000) trackRaw / 1000 else 0
+                    
+                    val contentUri = ContentUris.withAppendedId(
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        id
+                    ).toString()
 
-                songs.add(
-                    Song(
-                        mediaStoreId = id,
-                        title = title,
-                        artist = artist,
-                        album = album,
-                        duration = duration,
-                        dataPath = data,
-                        uri = contentUri,
-                        albumId = albumId,
-                        albumArtUri = "", // Filled by mapper
-                        lyrics = null, // Extracted on demand
-                        genre = null, // Extracted on demand
-                        year = if (year > 0) year else null,
-                        trackNumber = if (trackNumber > 0) trackNumber else null,
-                        discNumber = if (discNumber > 0) discNumber else null
+                    songs.add(
+                        Song(
+                            mediaStoreId = id,
+                            title = title,
+                            artist = artist,
+                            album = album,
+                            duration = duration,
+                            dataPath = data,
+                            uri = contentUri,
+                            albumId = albumId,
+                            albumArtUri = "", // Filled by mapper
+                            lyrics = null,
+                            genre = null,
+                            year = if (year > 0) year else null,
+                            trackNumber = if (trackNumber > 0) trackNumber else null,
+                            discNumber = if (discNumber > 0) discNumber else null
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return songs
     }
