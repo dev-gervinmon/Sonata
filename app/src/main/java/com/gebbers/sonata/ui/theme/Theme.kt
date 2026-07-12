@@ -15,16 +15,25 @@ fun SonataTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        seedColor != null -> {
+            // Manual seed color theming
+            if (darkTheme) {
+                darkColorScheme(
+                    primary = seedColor,
+                    secondary = seedColor.copy(alpha = 0.8f),
+                    tertiary = seedColor.copy(alpha = 0.6f)
+                )
+            } else {
+                lightColorScheme(
+                    primary = seedColor,
+                    secondary = seedColor.copy(alpha = 0.8f),
+                    tertiary = seedColor.copy(alpha = 0.6f)
+                )
+            }
+        }
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        seedColor != null -> {
-            if (darkTheme) {
-                dynamicDarkColorScheme(LocalContext.current).copy(primary = seedColor) // Simplified for now
-            } else {
-                dynamicLightColorScheme(LocalContext.current).copy(primary = seedColor)
-            }
         }
         darkTheme -> darkColorScheme()
         else -> lightColorScheme()
