@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -16,6 +17,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import com.gebbers.sonata.data.mapper.toMediaItem
 import com.gebbers.sonata.data.preferences.PreferenceManager
@@ -94,9 +96,21 @@ class PlaybackService : MediaLibraryService() {
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
             return serviceScope.future {
-                val songs = musicRepository.getAllSongs().first()
-                val mediaItems = songs.map { it.toMediaItem() }
-                LibraryResult.ofItemList(mediaItems, params)
+                try {
+                    val allSongs = musicRepository.getAllSongs().first()
+                    // Support pagination to avoid TransactionTooLargeException
+                    val startIndex = page * pageSize
+                    val endIndex = (startIndex + pageSize).coerceAtMost(allSongs.size)
+                    
+                    if (startIndex >= allSongs.size) {
+                        return@future LibraryResult.ofItemList(ImmutableList.of(), params)
+                    }
+
+                    val pageItems = allSongs.subList(startIndex, endIndex).map { it.toMediaItem() }
+                    LibraryResult.ofItemList(ImmutableList.copyOf(pageItems), params)
+                } catch (e: Exception) {
+                    LibraryResult.ofItemList(ImmutableList.of(), params)
+                }
             }
         }
     }
@@ -116,7 +130,9 @@ class PlaybackService : MediaLibraryService() {
         
         player.addListener(object : Player.Listener {
             override fun onAudioSessionIdChanged(audioSessionId: Int) {
-                equalizerManager.init(audioSessionId)
+                if (audioSessionId != 0) {
+                    equalizerManager.init(audioSessionId)
+                }
             }
             
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -125,12 +141,6 @@ class PlaybackService : MediaLibraryService() {
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updateWidget()
-                // Record playback for smart playlists
-                mediaItem?.mediaId?.toLongOrNull()?.let { id ->
-                    serviceScope.launch { musicRepository.recordSongPlayback(id) }
-                }
-                
-                // Restart fade monitoring for new track
                 resetVolume(player)
                 startFadeOutMonitor(player)
             }
@@ -149,6 +159,30 @@ class PlaybackService : MediaLibraryService() {
         })
 
         mediaSession = MediaLibrarySession.Builder(this, player, librarySessionCallback).build()
+
+        serviceScope.launch {
+            equalizerManager.state.collect { state ->
+                val behavior = if (state.isVirtualizerEnabled) {
+                    androidx.media3.common.C.SPATIALIZATION_BEHAVIOR_AUTO
+                } else {
+                    androidx.media3.common.C.SPATIALIZATION_BEHAVIOR_NEVER
+                }
+                
+                try {
+                    val currentAttributes = player.audioAttributes
+                    if (currentAttributes.spatializationBehavior != behavior) {
+                        val newAttributes = androidx.media3.common.AudioAttributes.Builder()
+                            .setContentType(currentAttributes.contentType)
+                            .setFlags(currentAttributes.flags)
+                            .setUsage(currentAttributes.usage)
+                            .setAllowedCapturePolicy(currentAttributes.allowedCapturePolicy)
+                            .setSpatializationBehavior(behavior)
+                            .build()
+                        player.setAudioAttributes(newAttributes, true)
+                    }
+                } catch (_: Exception) {}
+            }
+        }
 
         serviceScope.launch {
             preferenceManager.fadeDuration.collect {
@@ -210,13 +244,19 @@ class PlaybackService : MediaLibraryService() {
     }
 
     private fun animateVolume(player: Player, from: Float, to: Float, duration: Long) {
-        volumeAnimator?.cancel()
-        volumeAnimator = android.animation.ValueAnimator.ofFloat(from, to).apply {
-            this.duration = duration
-            addUpdateListener { 
-                player.volume = it.animatedValue as Float
+        val looper = android.os.Looper.myLooper() ?: android.os.Looper.getMainLooper()
+        val handler = android.os.Handler(looper)
+        
+        handler.post {
+            volumeAnimator?.cancel()
+            volumeAnimator = android.animation.ValueAnimator.ofFloat(from, to).apply {
+                this.duration = duration
+                addUpdateListener { 
+                    val value = it.animatedValue as? Float ?: return@addUpdateListener
+                    player.volume = value
+                }
+                start()
             }
-            start()
         }
     }
 
@@ -224,13 +264,13 @@ class PlaybackService : MediaLibraryService() {
         fadeOutRunnable?.let { handler.removeCallbacks(it) }
         fadeOutRunnable = object : Runnable {
             override fun run() {
-                if (!player.isPlaying) {
+                if (!player.isPlaying || player.duration <= 0) {
                     handler.postDelayed(this, 1000)
                     return
                 }
                 
                 val remaining = player.duration - player.currentPosition
-                if (player.duration > 0 && remaining in 1..currentFadeDuration) {
+                if (remaining in 1..currentFadeDuration) {
                     fadeOut(player)
                 } else {
                     handler.postDelayed(this, 500)
