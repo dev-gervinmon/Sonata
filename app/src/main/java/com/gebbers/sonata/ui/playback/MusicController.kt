@@ -2,6 +2,7 @@ package com.gebbers.sonata.ui.playback
 
 import android.content.ComponentName
 import android.content.Context
+import androidx.core.content.ContextCompat
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -9,7 +10,6 @@ import com.gebbers.sonata.PlaybackService
 import com.gebbers.sonata.domain.model.Song
 import com.gebbers.sonata.data.mapper.toMediaItem
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,8 +25,9 @@ class MusicController @Inject constructor(
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var controllerFuture: ListenableFuture<MediaController>? = null
+    private var mediaController: MediaController? = null
     private val controller: MediaController?
-        get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
+        get() = mediaController
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying = _isPlaying.asStateFlow()
@@ -66,44 +67,56 @@ class MusicController @Inject constructor(
         controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
         
         controllerFuture?.addListener({
-            val controller = controller ?: return@addListener
-            controller.addListener(object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    _isPlaying.value = isPlaying
-                    if (isPlaying) {
-                        startProgressUpdate()
-                    } else {
-                        stopProgressUpdate()
-                    }
-                }
-
-                override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                    _shuffleModeEnabled.value = shuffleModeEnabled
-                }
-
-                override fun onRepeatModeChanged(repeatMode: Int) {
-                    _repeatMode.value = repeatMode
-                }
-
-                override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
-                    mediaItem?.let { item ->
-                        _currentSong.value = currentPlaylist.find { it.mediaStoreId.toString() == item.mediaId }
-                        _duration.value = controller.duration.coerceAtLeast(0L)
-                        
-                        // Record playback for smart playlists
-                        item.mediaId.toLongOrNull()?.let { id ->
-                            scope.launch { musicRepository.recordSongPlayback(id) }
+            try {
+                mediaController = controllerFuture?.get()
+                mediaController?.let { controller ->
+                    controller.addListener(object : Player.Listener {
+                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                            _isPlaying.value = isPlaying
+                            if (isPlaying) {
+                                startProgressUpdate()
+                            } else {
+                                stopProgressUpdate()
+                            }
                         }
-                    }
-                }
 
-                override fun onPlaybackStateChanged(playbackState: Int) {
-                    if (playbackState == Player.STATE_READY) {
-                        _duration.value = controller.duration.coerceAtLeast(0L)
-                    }
+                        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                            _shuffleModeEnabled.value = shuffleModeEnabled
+                        }
+
+                        override fun onRepeatModeChanged(repeatMode: Int) {
+                            _repeatMode.value = repeatMode
+                        }
+
+                        override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+                            mediaItem?.let { item ->
+                                val song = currentPlaylist.find { it.mediaStoreId.toString() == item.mediaId }
+                                _currentSong.value = song
+                                _duration.value = controller.duration.coerceAtLeast(0L)
+                                
+                                if (song != null) {
+                                    scope.launch { musicRepository.recordSongPlayback(song.mediaStoreId) }
+                                }
+                            }
+                        }
+
+                        override fun onPlaybackStateChanged(playbackState: Int) {
+                            if (playbackState == Player.STATE_READY) {
+                                _duration.value = controller.duration.coerceAtLeast(0L)
+                            }
+                        }
+                    })
+                    
+                    // Initial Sync
+                    _isPlaying.value = controller.isPlaying
+                    _shuffleModeEnabled.value = controller.shuffleModeEnabled
+                    _repeatMode.value = controller.repeatMode
+                    if (controller.isPlaying) startProgressUpdate()
                 }
-            })
-        }, MoreExecutors.directExecutor())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }, ContextCompat.getMainExecutor(context))
     }
 
     private fun startProgressUpdate() {
@@ -123,17 +136,24 @@ class MusicController @Inject constructor(
     }
 
     fun playSong(song: Song, allSongs: List<Song>) {
-        val controller = controller ?: return
+        val controller = mediaController ?: return
         
-        currentPlaylist = allSongs
-        val mediaItems = allSongs.map { it.toMediaItem() }
-        val startIndex = allSongs.indexOf(song).coerceAtLeast(0)
-        
-        controller.setMediaItems(mediaItems, startIndex, 0L)
-        controller.prepare()
-        controller.play()
-        _currentSong.value = song
-        _duration.value = 0L // Reset duration until it's ready
+        scope.launch {
+            try {
+                // Testing with a very small queue to isolate Binder issues
+                val mediaItems = listOf(song.toMediaItem())
+                currentPlaylist = listOf(song)
+                
+                withContext(Dispatchers.Main) {
+                    controller.setMediaItems(mediaItems)
+                    controller.prepare()
+                    controller.play()
+                    _currentSong.value = song
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun seekTo(position: Long) {
@@ -142,13 +162,13 @@ class MusicController @Inject constructor(
 
     fun seekForward() {
         val controller = controller ?: return
-        val newPosition = controller.currentPosition + 10_000L // 10 seconds
+        val newPosition = controller.currentPosition + 10_000L
         controller.seekTo(newPosition.coerceAtMost(controller.duration))
     }
 
     fun seekBack() {
         val controller = controller ?: return
-        val newPosition = controller.currentPosition - 10_000L // 10 seconds
+        val newPosition = controller.currentPosition - 10_000L
         controller.seekTo(newPosition.coerceAtLeast(0L))
     }
 
@@ -223,6 +243,7 @@ class MusicController @Inject constructor(
         controllerFuture?.let {
             MediaController.releaseFuture(it)
             controllerFuture = null
+            mediaController = null
         }
     }
 }
