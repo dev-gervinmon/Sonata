@@ -59,20 +59,19 @@ fun Song.toEntity(dateAdded: Long = System.currentTimeMillis()): SongEntity {
 }
 
 fun Song.toMediaItem(): MediaItem {
+    val metadata = MediaMetadata.Builder()
+        .setTitle(title)
+        .setArtist(artist)
+        .setAlbumTitle(album)
+        .setArtworkUri(Uri.parse(albumArtUri))
+        .setIsBrowsable(false)
+        .setIsPlayable(true)
+        .build()
+
     return MediaItem.Builder()
         .setMediaId(mediaStoreId.toString())
         .setUri(Uri.parse(uri))
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle(title)
-                .setArtist(artist)
-                .setAlbumTitle(album)
-                .setArtworkUri(Uri.parse(albumArtUri))
-                .setIsBrowsable(false)
-                .setIsPlayable(true)
-                .setTrackNumber(trackNumber)
-                .setDiscNumber(discNumber)
-                .build()
-        )
+        .setMimeType("audio/*") // Hint for the player
+        .setMediaMetadata(metadata)
         .build()
 }
