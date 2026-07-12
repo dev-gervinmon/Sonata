@@ -1,27 +1,37 @@
 package com.gebbers.sonata.ui.equalizer
 
+import android.content.Context
+import android.media.AudioManager
+import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
 import android.media.audiofx.LoudnessEnhancer
-import android.media.audiofx.BassBoost
-import android.media.audiofx.Virtualizer
 import android.media.audiofx.Visualizer
+import android.os.Build
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.sqrt
 
 @Singleton
-class EqualizerManager @Inject constructor() {
+class EqualizerManager @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
     private var equalizer: Equalizer? = null
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var bassBoost: BassBoost? = null
-    private var virtualizer: Virtualizer? = null
+    
+    // Legacy Virtualizer for Android < 15
+    private var legacyVirtualizer: android.media.audiofx.Virtualizer? = null
     private var visualizer: Visualizer? = null
     
+    private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
     private val _state = MutableStateFlow(EqualizerState())
     val state = _state.asStateFlow()
 
-    private val _fftData = MutableStateFlow<FloatArray>(FloatArray(0))
+    private val _fftData = MutableStateFlow(FloatArray(0))
     val fftData = _fftData.asStateFlow()
 
     fun init(audioSessionId: Int) {
@@ -37,20 +47,27 @@ class EqualizerManager @Inject constructor() {
                 enabled = _state.value.isBassBoostEnabled
                 setStrength(_state.value.bassBoostStrength)
             }
-            virtualizer = Virtualizer(0, audioSessionId).apply {
-                enabled = _state.value.isVirtualizerEnabled
-                setStrength(_state.value.virtualizerStrength)
+            
+            // New Docs: Use Spatializer instead of Virtualizer for Android 15+
+            // We initialize legacy Virtualizer only for older versions
+            if (Build.VERSION.SDK_INT < 35) {
+                initLegacyVirtualizer(audioSessionId)
             }
             
-            visualizer = Visualizer(audioSessionId).apply {
-                captureSize = Visualizer.getCaptureSizeRange()[1]
-                setDataCaptureListener(object : Visualizer.OnDataCaptureListener {
-                    override fun onWaveFormDataCapture(v: Visualizer?, waveform: ByteArray?, samplingRate: Int) {}
-                    override fun onFftDataCapture(v: Visualizer?, fft: ByteArray?, samplingRate: Int) {
-                        fft?.let { processFft(it) }
-                    }
-                }, Visualizer.getMaxCaptureRate() / 2, false, true)
-                enabled = true
+            visualizer = try {
+                Visualizer(audioSessionId).apply {
+                    captureSize = Visualizer.getCaptureSizeRange()[1]
+                    setDataCaptureListener(object : Visualizer.OnDataCaptureListener {
+                        override fun onWaveFormDataCapture(v: Visualizer?, waveform: ByteArray?, samplingRate: Int) {}
+                        override fun onFftDataCapture(v: Visualizer?, fft: ByteArray?, samplingRate: Int) {
+                            fft?.let { processFft(it) }
+                        }
+                    }, Visualizer.getMaxCaptureRate() / 2, false, true)
+                    enabled = true
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
             }
 
             loadEqualizerSettings()
@@ -59,12 +76,24 @@ class EqualizerManager @Inject constructor() {
         }
     }
 
+    private fun initLegacyVirtualizer(audioSessionId: Int) {
+        try {
+            @Suppress("DEPRECATION")
+            legacyVirtualizer = android.media.audiofx.Virtualizer(0, audioSessionId).apply {
+                enabled = _state.value.isVirtualizerEnabled
+                setStrength(_state.value.virtualizerStrength)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun processFft(fft: ByteArray) {
         val magnitudes = FloatArray(fft.size / 2)
-        for (i in 0 until magnitudes.size) {
+        for (i in magnitudes.indices) {
             val r = fft[i * 2].toFloat()
             val j = fft[i * 2 + 1].toFloat()
-            magnitudes[i] = Math.sqrt((r * r + j * j).toDouble()).toFloat()
+            magnitudes[i] = sqrt((r * r + j * j).toDouble()).toFloat()
         }
         _fftData.value = magnitudes
     }
@@ -124,13 +153,22 @@ class EqualizerManager @Inject constructor() {
     }
 
     fun setVirtualizerEnabled(enabled: Boolean) {
-        virtualizer?.enabled = enabled
         _state.value = _state.value.copy(isVirtualizerEnabled = enabled)
+        
+        if (Build.VERSION.SDK_INT < 35) {
+            @Suppress("DEPRECATION")
+            legacyVirtualizer?.enabled = enabled
+        }
+        // On Android 15+, spatialization is handled in PlaybackService by observing this state
     }
 
     fun setVirtualizerStrength(strength: Short) {
-        virtualizer?.setStrength(strength)
         _state.value = _state.value.copy(virtualizerStrength = strength)
+        
+        if (Build.VERSION.SDK_INT < 35) {
+            @Suppress("DEPRECATION")
+            legacyVirtualizer?.setStrength(strength)
+        }
     }
 
     fun setBandLevel(bandIndex: Int, level: Short) {
@@ -151,12 +189,13 @@ class EqualizerManager @Inject constructor() {
         equalizer?.release()
         loudnessEnhancer?.release()
         bassBoost?.release()
-        virtualizer?.release()
+        @Suppress("DEPRECATION")
+        legacyVirtualizer?.release()
         visualizer?.release()
         equalizer = null
         loudnessEnhancer = null
         bassBoost = null
-        virtualizer = null
+        legacyVirtualizer = null
         visualizer = null
     }
 }
