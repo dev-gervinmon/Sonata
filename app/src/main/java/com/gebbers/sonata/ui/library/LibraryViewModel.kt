@@ -430,7 +430,11 @@ class LibraryViewModel @Inject constructor(
         if (isGranted) {
             refreshLibrary()
         } else {
-            _uiState.value = LibraryUiState.PermissionDenied
+            // Only show permission denied if we actually don't have music permission.
+            // Record Audio is optional.
+            if (_uiState.value is LibraryUiState.Loading) {
+                _uiState.value = LibraryUiState.PermissionDenied
+            }
         }
     }
 
