@@ -25,7 +25,8 @@ object DatabaseModule {
             context,
             SonataDatabase::class.java,
             SonataDatabase.DATABASE_NAME
-        ).build()
+        ).fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
