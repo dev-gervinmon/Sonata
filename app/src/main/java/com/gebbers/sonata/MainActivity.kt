@@ -37,8 +37,13 @@ class MainActivity : AppCompatActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
-        val isGranted = result.values.all { it }
-        viewModel.onPermissionResult(isGranted)
+        val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_AUDIO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        val isStorageGranted = result[storagePermission] ?: false
+        viewModel.onPermissionResult(isStorageGranted)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,23 +77,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions() {
-        val permissions = mutableListOf<String>().apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                add(Manifest.permission.READ_MEDIA_AUDIO)
-            } else {
-                add(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-            add(Manifest.permission.RECORD_AUDIO)
-        }
-
-        val missingPermissions = permissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-
-        if (missingPermissions.isEmpty()) {
-            viewModel.onPermissionResult(true)
+        val criticalPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(Manifest.permission.READ_MEDIA_AUDIO)
         } else {
-            permissionLauncher.launch(missingPermissions.toTypedArray())
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+
+        val optionalPermissions = arrayOf(Manifest.permission.RECORD_AUDIO)
+        val allPermissions = criticalPermissions + optionalPermissions
+
+        criticalPermissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }.let { missing ->
+            if (missing.isEmpty()) {
+                viewModel.onPermissionResult(true)
+            } else {
+                permissionLauncher.launch(allPermissions)
+            }
         }
     }
 }
